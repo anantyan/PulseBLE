@@ -189,6 +189,12 @@ com.anantyan.pulseble/
 4. **Pengujian Menyeluruh**:
    * 100% unit tests lolos tanpa kegagalan library.
    * E2E live validation pada Xiaomi POCO fisik via Wireless ADB.
+5. **Stabilitas Posisi Scroll & Animasi Re-order Real-Time**:
+   * Mengimplementasikan pelacakan `isAtTop` dan `anchoredKey` via `snapshotFlow` pada `LazyListState`.
+   * Saat berada di posisi paling atas (*top*), list dikunci pada index 0 offset 0 sehingga item dengan RSSI lebih kuat langsung tampil di atas dan item terdorong ke bawah secara alami tanpa ada item tersembunyi di atas layar yang memaksa pengguna scroll ke atas.
+   * Saat berada di tengah (*middle/bottom*), posisi scroll terkunci pada item yang sedang dibaca pengguna agar tampilan tidak meloncat saat ranking RSSI berganti.
+   * Penyesuaian otomatis di-pause saat `listState.isScrollInProgress` aktif guna mencegah benturan (*scroll fighting*) dengan jari pengguna.
+   * Menambahkan `Modifier.animateItem()` pada kartu perangkat sehingga transisi pergeseran naik-turun bergerak mengalir halus.
 
 ---
 

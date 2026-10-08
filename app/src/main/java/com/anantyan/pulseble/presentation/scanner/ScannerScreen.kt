@@ -61,9 +61,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -121,6 +123,52 @@ fun ScannerScreen(
     var renamingDevice by remember { mutableStateOf<BleDevice?>(null) }
     var isSearchVisible by remember { mutableStateOf(true) }
     val listState = rememberLazyListState()
+
+    var isAtTop by remember { mutableStateOf(true) }
+    var anchoredKey by remember { mutableStateOf<String?>(null) }
+    var anchoredOffset by remember { mutableIntStateOf(0) }
+
+    // Track user scroll position without fighting manual dragging
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            val inProgress = listState.isScrollInProgress
+            val isTop = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+            val topVisibleKey = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.key as? String
+            val offset = listState.firstVisibleItemScrollOffset
+            Triple(inProgress, isTop, Pair(topVisibleKey, offset))
+        }.collect { (inProgress, isTop, keyAndOffset) ->
+            isAtTop = isTop
+            if (!isTop && keyAndOffset.first != null) {
+                anchoredKey = keyAndOffset.first
+                anchoredOffset = keyAndOffset.second
+            }
+        }
+    }
+
+    // Lock and anchor scroll position across real-time list updates
+    LaunchedEffect(state.devices) {
+        if (listState.isScrollInProgress || state.devices.isEmpty()) return@LaunchedEffect
+
+        if (isAtTop) {
+            // Posisi on-top tetap terkunci pada item teratas (index 0, offset 0)
+            // Setiap item baru/lebih kuat langsung muncul di posisi atas dan item terdorong ke bawah
+            // Tanpa ada item tersembunyi di atas layar yang memaksa user scroll ke atas
+            if (listState.firstVisibleItemIndex != 0 || listState.firstVisibleItemScrollOffset != 0) {
+                listState.scrollToItem(0, 0)
+            }
+        } else {
+            // Posisi on-middle / on-bottom tetap terkunci pada item yang sedang dilihat pengguna
+            // sehingga konten tidak meloncat ketika terjadi pergeseran ranking RSSI
+            anchoredKey?.let { targetKey ->
+                val targetIndex = state.devices.indexOfFirst { it.macAddress == targetKey }
+                if (targetIndex >= 0) {
+                    if (listState.firstVisibleItemIndex != targetIndex || listState.firstVisibleItemScrollOffset != anchoredOffset) {
+                        listState.scrollToItem(targetIndex, anchoredOffset)
+                    }
+                }
+            }
+        }
+    }
 
     val context = LocalContext.current
     BackHandler {
@@ -512,6 +560,7 @@ fun ScannerScreen(
                     key = { it.macAddress }
                 ) { device ->
                     BleDeviceCard(
+                        modifier = Modifier.animateItem(),
                         device = device,
                         onClick = { onDeviceClick(device.macAddress) },
                         onRenameClick = { renamingDevice = device }

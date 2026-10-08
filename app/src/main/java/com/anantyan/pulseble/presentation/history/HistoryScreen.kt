@@ -322,6 +322,7 @@ fun HistoryScreen(
                     key = { it.macAddress }
                 ) { device ->
                     HistoryItemCard(
+                        modifier = Modifier.animateItem(),
                         device = device,
                         onTrackClick = { onTrackDeviceClick(device.macAddress) },
                         onDeleteClick = { onDeleteDeviceClick(device.macAddress) }
