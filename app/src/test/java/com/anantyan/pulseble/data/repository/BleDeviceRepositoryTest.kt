@@ -121,4 +121,36 @@ class BleDeviceRepositoryTest {
         assertEquals("Arya's AirPods", updatedDevices[0].displayName)
         assertEquals("Arya's AirPods", updatedDevices[0].customName)
     }
+
+    @Test
+    fun testStopScanClearsActiveDevicesAndCache() = runTest {
+        val fakeNativeScanner = object : NativeBleScannerDataSource() {
+            override fun scan(): Flow<BleScanResult> = flowOf(
+                BleScanResult(
+                    macAddress = "AA:BB:CC:DD:EE:FF",
+                    name = "BLE Beacon",
+                    rssi = -60
+                )
+            )
+            override fun isBluetoothEnabled(): Boolean = true
+            override fun isBluetoothSupported(): Boolean = true
+        }
+
+        val repository = BleDeviceRepositoryImpl(
+            nativeScanner = fakeNativeScanner,
+            deviceDao = fakeDao
+        )
+
+        repository.startScan()
+        var waited = 0
+        while (repository.activeDevices.value.isEmpty() && waited < 2000) {
+            Thread.sleep(25)
+            waited += 25
+        }
+        assertEquals(1, repository.activeDevices.value.size)
+
+        repository.stopScan()
+        assertFalse(repository.isScanning.value)
+        assertTrue(repository.activeDevices.value.isEmpty())
+    }
 }

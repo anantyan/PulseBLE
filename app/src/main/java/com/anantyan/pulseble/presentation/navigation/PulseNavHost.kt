@@ -159,6 +159,7 @@ fun PulseNavHost(
                     state = historyState,
                     onSearchQueryChange = { historyViewModel.onSearchQueryChanged(it) },
                     onTrackDeviceClick = { mac ->
+                        scannerViewModel.startScanning()
                         navController.navigate(NavScreen.Radar.createRoute(mac))
                     },
                     onDeleteDeviceClick = { mac -> historyViewModel.deleteDevice(mac) },

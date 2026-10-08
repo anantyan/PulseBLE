@@ -65,6 +65,10 @@ class BleDeviceRepositoryImpl @Inject constructor(
         _scanError.value = null
         _isScanning.value = true
 
+        // User requirement: Deteksi scanning BLE dari awal dengan membersihkan cache
+        deviceCache.clear()
+        _activeDevices.value = emptyList()
+
         scanJob = repositoryScope.launch {
             nativeScanner.scan()
                 .catch { throwable ->
@@ -81,8 +85,12 @@ class BleDeviceRepositoryImpl @Inject constructor(
         scanJob?.cancel()
         scanJob = null
         _isScanning.value = false
-        // Flush any remaining unsaved items immediately
+        // Flush any remaining unsaved items immediately to Room DB
         flushPendingDevicesToDb()
+
+        // User requirement: Otomatis membersihkan list scanning dan cache saat mematikan pindai
+        deviceCache.clear()
+        _activeDevices.value = emptyList()
     }
 
     private fun processScanResult(result: BleScanResult) {
