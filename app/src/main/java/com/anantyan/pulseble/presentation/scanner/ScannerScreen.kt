@@ -1,12 +1,17 @@
 package com.anantyan.pulseble.presentation.scanner
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +30,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -48,6 +54,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,7 +62,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -91,6 +102,30 @@ fun ScannerScreen(
 ) {
     var showFilterPanel by remember { mutableStateOf(false) }
     var renamingDevice by remember { mutableStateOf<BleDevice?>(null) }
+    var isSearchVisible by remember { mutableStateOf(true) }
+    val listState = rememberLazyListState()
+
+    // Nested scroll connection for snap collapsing/expanding search & filter
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val delta = available.y
+                if (delta < -10f && isSearchVisible) {
+                    isSearchVisible = false
+                } else if (delta > 10f && !isSearchVisible) {
+                    isSearchVisible = true
+                }
+                return Offset.Zero
+            }
+        }
+    }
+
+    // Auto-reveal search bar when reaching top of list
+    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+        if (listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0) {
+            isSearchVisible = true
+        }
+    }
 
     val infiniteTransition = rememberInfiniteTransition(label = "LivePulse")
     val pulseAlpha by infiniteTransition.animateFloat(
@@ -107,6 +142,7 @@ fun ScannerScreen(
         modifier = modifier
             .fillMaxSize()
             .background(DarkBackground)
+            .nestedScroll(nestedScrollConnection)
     ) {
         // Tactical Top App Bar
         TopAppBar(
@@ -214,175 +250,185 @@ fun ScannerScreen(
             onDismissError = onDismissError
         )
 
-        // Search & Filter Bar
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        // Snap Search & Filter Bar (Hidden when scrolling down, revealed when scrolling up)
+        AnimatedVisibility(
+            visible = isSearchVisible || state.searchQuery.isNotEmpty() || showFilterPanel,
+            enter = expandVertically(
+                animationSpec = tween(220, easing = FastOutSlowInEasing)
+            ) + fadeIn(animationSpec = tween(220)),
+            exit = shrinkVertically(
+                animationSpec = tween(220, easing = FastOutSlowInEasing)
+            ) + fadeOut(animationSpec = tween(220))
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedTextField(
-                    value = state.searchQuery,
-                    onValueChange = onSearchQueryChange,
-                    modifier = Modifier.weight(1f),
-                    placeholder = {
-                        Text("Cari nama atau MAC...", color = TextMuted, fontSize = 13.sp)
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = TextMuted,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    },
-                    trailingIcon = {
-                        if (state.searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { onSearchQueryChange("") }) {
-                                Icon(
-                                    imageVector = Icons.Default.Clear,
-                                    contentDescription = "Clear",
-                                    tint = TextMuted,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = DarkSurface,
-                        unfocusedContainerColor = DarkSurface,
-                        focusedBorderColor = ElectricBlue,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary
-                    )
-                )
-
-                // Filter Slider Toggle Button
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            if (showFilterPanel || state.minRssiThreshold > -100) ElectricBlue.copy(alpha = 0.2f)
-                            else DarkSurface
-                        )
-                        .border(
-                            1.dp,
-                            if (showFilterPanel || state.minRssiThreshold > -100) ElectricBlue
-                            else Color.White.copy(alpha = 0.1f),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .clickable { showFilterPanel = !showFilterPanel },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Tune,
-                        contentDescription = "Filter RSSI",
-                        tint = if (showFilterPanel || state.minRssiThreshold > -100) ElectricBlue else TextSecondary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
-            // Expandable RSSI Slider Filter Panel (PRD 2.2)
-            AnimatedVisibility(visible = showFilterPanel) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(DarkSurface)
-                        .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
-                        .padding(12.dp)
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Ambang Batas Sinyal Minimum (RSSI)",
-                                color = TextSecondary,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = if (state.minRssiThreshold <= -100) "Semua Sinyal"
-                                else "≥ ${state.minRssiThreshold} dBm",
-                                color = ElectricBlue,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        }
-
-                        Slider(
-                            value = state.minRssiThreshold.toFloat(),
-                            onValueChange = { onMinRssiChange(it.roundToInt()) },
-                            valueRange = -100f..-30f,
-                            steps = 13,
-                            colors = SliderDefaults.colors(
-                                thumbColor = ElectricBlue,
-                                activeTrackColor = ElectricBlue,
-                                inactiveTrackColor = DarkSurfaceElevated
-                            )
-                        )
-
-                        Text(
-                            text = "Hanya menampilkan perangkat dengan kekuatan sinyal di atas ambang batas.",
-                            color = TextMuted,
-                            fontSize = 10.sp
-                        )
-                    }
-                }
-            }
-
-            // Counter Header & Active Filter Reset
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 2.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "Ditemukan: ${state.activeDeviceCount} perangkat",
-                    color = TextSecondary,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                if (state.minRssiThreshold > -100) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(ElectricBlue.copy(alpha = 0.15f))
-                            .clickable { onMinRssiChange(-100) }
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                    ) {
-                        Text(
-                            text = "≥ ${state.minRssiThreshold} dBm",
-                            color = ElectricBlue,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = state.searchQuery,
+                        onValueChange = onSearchQueryChange,
+                        modifier = Modifier.weight(1f),
+                        placeholder = {
+                            Text("Cari nama atau MAC...", color = TextMuted, fontSize = 13.sp)
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search",
+                                tint = TextMuted,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        trailingIcon = {
+                            if (state.searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { onSearchQueryChange("") }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = "Clear",
+                                        tint = TextMuted,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = DarkSurface,
+                            unfocusedContainerColor = DarkSurface,
+                            focusedBorderColor = ElectricBlue,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                    )
+
+                    // Filter Slider Toggle Button
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                if (showFilterPanel || state.minRssiThreshold > -100) ElectricBlue.copy(alpha = 0.2f)
+                                else DarkSurface
+                            )
+                            .border(
+                                1.dp,
+                                if (showFilterPanel || state.minRssiThreshold > -100) ElectricBlue
+                                else Color.White.copy(alpha = 0.1f),
+                                RoundedCornerShape(12.dp)
+                            )
+                            .clickable { showFilterPanel = !showFilterPanel },
+                        contentAlignment = Alignment.Center
+                    ) {
                         Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "Reset filter",
-                            tint = ElectricBlue,
-                            modifier = Modifier.size(12.dp)
+                            imageVector = Icons.Default.Tune,
+                            contentDescription = "Filter RSSI",
+                            tint = if (showFilterPanel || state.minRssiThreshold > -100) ElectricBlue else TextSecondary,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
+                }
+
+                // Expandable RSSI Slider Filter Panel (PRD 2.2)
+                AnimatedVisibility(visible = showFilterPanel) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(DarkSurface)
+                            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
+                            .padding(12.dp)
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Ambang Batas Sinyal Minimum (RSSI)",
+                                    color = TextSecondary,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = if (state.minRssiThreshold <= -100) "Semua Sinyal"
+                                    else "≥ ${state.minRssiThreshold} dBm",
+                                    color = ElectricBlue,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+
+                            Slider(
+                                value = state.minRssiThreshold.toFloat(),
+                                onValueChange = { onMinRssiChange(it.roundToInt()) },
+                                valueRange = -100f..-30f,
+                                steps = 13,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = ElectricBlue,
+                                    activeTrackColor = ElectricBlue,
+                                    inactiveTrackColor = DarkSurfaceElevated
+                                )
+                            )
+
+                            Text(
+                                text = "Hanya menampilkan perangkat dengan kekuatan sinyal di atas ambang batas.",
+                                color = TextMuted,
+                                fontSize = 10.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Counter Header & Active Filter Reset (Always visible for clarity)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Ditemukan: ${state.activeDeviceCount} perangkat",
+                color = TextSecondary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            if (state.minRssiThreshold > -100) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(ElectricBlue.copy(alpha = 0.15f))
+                        .clickable { onMinRssiChange(-100) }
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        text = "≥ ${state.minRssiThreshold} dBm",
+                        color = ElectricBlue,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Reset filter",
+                        tint = ElectricBlue,
+                        modifier = Modifier.size(12.dp)
+                    )
                 }
             }
         }
@@ -424,6 +470,7 @@ fun ScannerScreen(
             }
         } else {
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),

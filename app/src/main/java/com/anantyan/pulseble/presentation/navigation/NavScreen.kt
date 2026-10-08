@@ -8,6 +8,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 sealed class NavScreen(val route: String) {
+    data object Splash : NavScreen("splash")
     data object Scanner : NavScreen("scanner")
     data object History : NavScreen("history")
 

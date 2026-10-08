@@ -28,12 +28,20 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import com.anantyan.pulseble.presentation.history.HistoryScreen
 import com.anantyan.pulseble.presentation.history.HistoryViewModel
 import com.anantyan.pulseble.presentation.radar.RadarScreen
 import com.anantyan.pulseble.presentation.radar.RadarViewModel
 import com.anantyan.pulseble.presentation.scanner.ScannerScreen
 import com.anantyan.pulseble.presentation.scanner.ScannerViewModel
+import com.anantyan.pulseble.presentation.splash.SplashScreen
 import com.anantyan.pulseble.presentation.theme.DarkBackground
 import com.anantyan.pulseble.presentation.theme.DarkSurface
 import com.anantyan.pulseble.presentation.theme.ElectricBlue
@@ -53,7 +61,7 @@ fun PulseNavHost(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Hide bottom navigation on detail Radar view
+    // Hide bottom navigation on splash screen and detail Radar view
     val showBottomBar = currentRoute == NavScreen.Scanner.route || currentRoute == NavScreen.History.route
 
     Scaffold(
@@ -107,11 +115,50 @@ fun PulseNavHost(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = NavScreen.Scanner.route,
+            startDestination = NavScreen.Splash.route,
             modifier = Modifier.padding(innerPadding)
         ) {
+            // Screen 0: Interactive Tactical Splash Screen
+            composable(
+                route = NavScreen.Splash.route,
+                exitTransition = {
+                    fadeOut(animationSpec = tween(400)) + scaleOut(
+                        targetScale = 1.05f,
+                        animationSpec = tween(400, easing = FastOutSlowInEasing)
+                    )
+                }
+            ) {
+                SplashScreen(
+                    onNavigateToMain = {
+                        navController.navigate(NavScreen.Scanner.route) {
+                            popUpTo(NavScreen.Splash.route) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
             // Screen 1: Dashboard Utama (Scanner)
-            composable(NavScreen.Scanner.route) {
+            composable(
+                route = NavScreen.Scanner.route,
+                enterTransition = {
+                    fadeIn(animationSpec = tween(300))
+                },
+                exitTransition = {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                        animationSpec = tween(380, easing = FastOutSlowInEasing)
+                    ) + fadeOut(animationSpec = tween(380))
+                },
+                popEnterTransition = {
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.End,
+                        animationSpec = tween(380, easing = FastOutSlowInEasing)
+                    ) + fadeIn(animationSpec = tween(380))
+                }
+            ) {
                 val scannerState by scannerViewModel.uiState.collectAsStateWithLifecycle()
                 ScannerScreen(
                     state = scannerState,
@@ -128,14 +175,38 @@ fun PulseNavHost(
                 )
             }
 
-            // Screen 2: Detail Pelacakan (Radar View)
+            // Screen 2: Detail Pelacakan (Radar View) dengan Animasi Routing Taktis
             composable(
                 route = NavScreen.Radar.route,
                 arguments = listOf(
                     navArgument("macAddress") {
                         type = NavType.StringType
                     }
-                )
+                ),
+                enterTransition = {
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                        animationSpec = tween(380, easing = FastOutSlowInEasing)
+                    ) + fadeIn(animationSpec = tween(380))
+                },
+                exitTransition = {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                        animationSpec = tween(380, easing = FastOutSlowInEasing)
+                    ) + fadeOut(animationSpec = tween(380))
+                },
+                popEnterTransition = {
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.End,
+                        animationSpec = tween(380, easing = FastOutSlowInEasing)
+                    ) + fadeIn(animationSpec = tween(380))
+                },
+                popExitTransition = {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.End,
+                        animationSpec = tween(380, easing = FastOutSlowInEasing)
+                    ) + fadeOut(animationSpec = tween(380))
+                }
             ) { backStackEntry ->
                 val rawMac = backStackEntry.arguments?.getString("macAddress").orEmpty()
                 val decodedMac = URLDecoder.decode(rawMac, StandardCharsets.UTF_8.toString())
@@ -151,7 +222,24 @@ fun PulseNavHost(
             }
 
             // Screen 3: Riwayat Perangkat (History Log)
-            composable(NavScreen.History.route) {
+            composable(
+                route = NavScreen.History.route,
+                enterTransition = {
+                    fadeIn(animationSpec = tween(300))
+                },
+                exitTransition = {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Start,
+                        animationSpec = tween(380, easing = FastOutSlowInEasing)
+                    ) + fadeOut(animationSpec = tween(380))
+                },
+                popEnterTransition = {
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.End,
+                        animationSpec = tween(380, easing = FastOutSlowInEasing)
+                    ) + fadeIn(animationSpec = tween(380))
+                }
+            ) {
                 val historyViewModel: HistoryViewModel = hiltViewModel()
                 val historyState by historyViewModel.uiState.collectAsStateWithLifecycle()
 
