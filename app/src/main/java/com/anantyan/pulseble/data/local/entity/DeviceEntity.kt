@@ -13,5 +13,7 @@ data class DeviceEntity(
     val proximityZoneName: String,
     val lastSeenTimestamp: Long,
     val firstSeenTimestamp: Long,
-    val totalDetections: Int = 1
+    val totalDetections: Int = 1,
+    val customName: String? = null,
+    val vendorName: String? = null
 )

@@ -4,18 +4,21 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anantyan.pulseble.domain.usecase.TrackDeviceUseCase
+import com.anantyan.pulseble.domain.usecase.UpdateCustomDeviceNameUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.math.abs
 
 @HiltViewModel
 class RadarViewModel @Inject constructor(
     private val trackDeviceUseCase: TrackDeviceUseCase,
+    private val updateCustomDeviceNameUseCase: UpdateCustomDeviceNameUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -61,4 +64,10 @@ class RadarViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = RadarUiState(macAddress = macAddress)
         )
+
+    fun updateCustomName(customName: String) {
+        viewModelScope.launch {
+            updateCustomDeviceNameUseCase(macAddress, customName)
+        }
+    }
 }

@@ -19,6 +19,7 @@ interface BleDeviceRepository {
     fun getHistoryDevices(): Flow<List<BleDevice>>
     suspend fun clearHistory()
     suspend fun deleteHistoryDevice(macAddress: String)
+    suspend fun updateCustomDeviceName(macAddress: String, customName: String)
 
     fun isBluetoothEnabled(): Boolean
     fun isBluetoothSupported(): Boolean

@@ -54,6 +54,7 @@ class ScannerViewModelTest {
         override fun getHistoryDevices(): Flow<List<BleDevice>> = flowOf(emptyList())
         override suspend fun clearHistory() {}
         override suspend fun deleteHistoryDevice(macAddress: String) {}
+        override suspend fun updateCustomDeviceName(macAddress: String, customName: String) {}
         override fun isBluetoothEnabled(): Boolean = true
         override fun isBluetoothSupported(): Boolean = true
     }
@@ -111,6 +112,49 @@ class ScannerViewModelTest {
         advanceUntilIdle()
         assertEquals(1, viewModel.uiState.value.devices.size)
         assertEquals("Headphone", viewModel.uiState.value.devices[0].name)
+    }
+
+    @Test
+    fun testSearchFilteringByVendorAndCustomName() = runTest {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+
+        val vendorDevice = BleDevice(
+            macAddress = "CC:11:22:33:44:55",
+            name = "",
+            rawRssi = -50,
+            smoothedRssi = -50.0,
+            estimatedDistanceMeters = 2.0,
+            proximityZone = ProximityZone.CLOSE,
+            lastSeenTimestamp = 1000L,
+            vendorName = "Apple Device"
+        )
+        val customDevice = BleDevice(
+            macAddress = "DD:66:77:88:99:00",
+            name = "Generic Beacon",
+            rawRssi = -55,
+            smoothedRssi = -55.0,
+            estimatedDistanceMeters = 3.0,
+            proximityZone = ProximityZone.CLOSE,
+            lastSeenTimestamp = 1000L,
+            customName = "Arya's Tracker"
+        )
+
+        fakeRepository.activeDevicesFlow.value = listOf(vendorDevice, customDevice)
+        advanceUntilIdle()
+
+        // Search by vendor name in displayName
+        viewModel.onSearchQueryChanged("Apple")
+        advanceUntilIdle()
+        assertEquals(1, viewModel.uiState.value.devices.size)
+        assertEquals("CC:11:22:33:44:55", viewModel.uiState.value.devices[0].macAddress)
+
+        // Search by customName in displayName
+        viewModel.onSearchQueryChanged("Arya")
+        advanceUntilIdle()
+        assertEquals(1, viewModel.uiState.value.devices.size)
+        assertEquals("Arya's Tracker", viewModel.uiState.value.devices[0].displayName)
     }
 
     @Test

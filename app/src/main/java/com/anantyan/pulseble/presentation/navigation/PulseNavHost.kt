@@ -122,7 +122,8 @@ fun PulseNavHost(
                     },
                     onEnableBluetoothClick = onEnableBluetooth,
                     onRequestPermissionsClick = onRequestPermissions,
-                    onDismissError = { scannerViewModel.dismissError() }
+                    onDismissError = { scannerViewModel.dismissError() },
+                    onUpdateCustomName = { mac, name -> scannerViewModel.updateCustomName(mac, name) }
                 )
             }
 
@@ -143,7 +144,8 @@ fun PulseNavHost(
 
                 RadarScreen(
                     state = radarState,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { navController.popBackStack() },
+                    onUpdateCustomName = { name -> radarViewModel.updateCustomName(name) }
                 )
             }
 

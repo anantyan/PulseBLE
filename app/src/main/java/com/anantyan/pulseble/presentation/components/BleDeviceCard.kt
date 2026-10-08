@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.NearMe
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -40,7 +41,8 @@ import com.anantyan.pulseble.presentation.theme.TextSecondary
 fun BleDeviceCard(
     device: BleDevice,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onRenameClick: (() -> Unit)? = null
 ) {
     val zoneColor = device.proximityZone.displayColor
 
@@ -90,6 +92,16 @@ fun BleDeviceCard(
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1
                         )
+                        if (onRenameClick != null) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Ubah Nama",
+                                tint = TextMuted,
+                                modifier = Modifier
+                                    .size(15.dp)
+                                    .clickable { onRenameClick() }
+                            )
+                        }
                         if (device.isSimulated) {
                             Box(
                                 modifier = Modifier

@@ -47,3 +47,10 @@ class ClearHistoryUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(): Unit = repository.clearHistory()
 }
+
+class UpdateCustomDeviceNameUseCase @Inject constructor(
+    private val repository: BleDeviceRepository
+) {
+    suspend operator fun invoke(macAddress: String, customName: String): Unit =
+        repository.updateCustomDeviceName(macAddress, customName)
+}

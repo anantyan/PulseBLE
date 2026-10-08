@@ -12,10 +12,24 @@ data class BleDevice(
     val rssiHistory: List<Int> = emptyList(),
     val updateCount: Int = 1,
     val isSimulated: Boolean = false,
-    val packetsPerSecond: Double = 0.0
+    val packetsPerSecond: Double = 0.0,
+    val customName: String? = null,
+    val vendorName: String? = null
 ) {
     val displayName: String
-        get() = name.ifBlank { "Unknown BLE Device" }
+        get() {
+            if (!customName.isNullOrBlank()) return customName
+            if (name.isNotBlank() &&
+                !name.equals("Unknown", ignoreCase = true) &&
+                !name.equals("Unknown BLE Device", ignoreCase = true)) {
+                return name
+            }
+            val suffix = macAddress.takeLast(5)
+            if (!vendorName.isNullOrBlank()) {
+                return "$vendorName ($suffix)"
+            }
+            return "BLE Peripheral ($suffix)"
+        }
 
     val formattedDistance: String
         get() = when {

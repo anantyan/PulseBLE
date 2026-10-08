@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -75,7 +76,8 @@ class ScannerViewModel @Inject constructor(
             .filter { device ->
                 if (filter.query.isBlank()) true
                 else {
-                    device.name.contains(filter.query, ignoreCase = true) ||
+                    device.displayName.contains(filter.query, ignoreCase = true) ||
+                            device.name.contains(filter.query, ignoreCase = true) ||
                             device.macAddress.contains(filter.query, ignoreCase = true)
                 }
             }
@@ -139,6 +141,12 @@ class ScannerViewModel @Inject constructor(
         _hasPermissions.value = granted
         if (!granted && !uiState.value.isMockMode) {
             stopScanning()
+        }
+    }
+
+    fun updateCustomName(macAddress: String, customName: String) {
+        viewModelScope.launch {
+            repository.updateCustomDeviceName(macAddress, customName)
         }
     }
 

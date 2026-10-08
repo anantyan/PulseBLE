@@ -5,5 +5,6 @@ data class BleScanResult(
     val name: String,
     val rssi: Int,
     val txPower: Int? = null,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val vendorName: String? = null
 )

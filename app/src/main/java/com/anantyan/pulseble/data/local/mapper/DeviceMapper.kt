@@ -21,7 +21,9 @@ object DeviceMapper {
             estimatedDistanceMeters = entity.estimatedDistanceMeters,
             proximityZone = zone,
             lastSeenTimestamp = entity.lastSeenTimestamp,
-            updateCount = entity.totalDetections
+            updateCount = entity.totalDetections,
+            customName = entity.customName,
+            vendorName = entity.vendorName
         )
     }
 
@@ -34,7 +36,9 @@ object DeviceMapper {
             proximityZoneName = domain.proximityZone.name,
             lastSeenTimestamp = domain.lastSeenTimestamp,
             firstSeenTimestamp = existingFirstSeen ?: domain.lastSeenTimestamp,
-            totalDetections = domain.updateCount
+            totalDetections = domain.updateCount,
+            customName = domain.customName,
+            vendorName = domain.vendorName
         )
     }
 }

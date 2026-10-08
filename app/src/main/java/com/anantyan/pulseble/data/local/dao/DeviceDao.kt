@@ -22,6 +22,9 @@ interface DeviceDao {
     @Query("SELECT * FROM devices WHERE macAddress = :macAddress LIMIT 1")
     suspend fun getDeviceByMac(macAddress: String): DeviceEntity?
 
+    @Query("UPDATE devices SET customName = :customName WHERE macAddress = :macAddress")
+    suspend fun updateCustomName(macAddress: String, customName: String): Int
+
     @Query("DELETE FROM devices")
     suspend fun clearAll(): Int
 

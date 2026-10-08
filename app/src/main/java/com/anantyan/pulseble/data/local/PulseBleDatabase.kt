@@ -7,7 +7,7 @@ import com.anantyan.pulseble.data.local.entity.DeviceEntity
 
 @Database(
     entities = [DeviceEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class PulseBleDatabase : RoomDatabase() {

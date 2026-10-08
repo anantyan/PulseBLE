@@ -127,9 +127,13 @@ class BleDeviceRepositoryImpl @Inject constructor(
 
         val updateCount = (existing?.updateCount ?: 0) + 1
 
+        val resolvedName = if (result.name.isNotBlank()) result.name else (existing?.name ?: "")
+        val resolvedVendor = if (!result.vendorName.isNullOrBlank()) result.vendorName else existing?.vendorName
+        val currentCustomName = existing?.customName
+
         val updatedDevice = BleDevice(
             macAddress = result.macAddress,
-            name = if (result.name.isNotBlank()) result.name else (existing?.name ?: ""),
+            name = resolvedName,
             rawRssi = result.rssi,
             smoothedRssi = smoothedRssi,
             estimatedDistanceMeters = estimatedDistance,
@@ -138,7 +142,9 @@ class BleDeviceRepositoryImpl @Inject constructor(
             txPower = result.txPower,
             rssiHistory = trimmedHistory,
             updateCount = updateCount,
-            isSimulated = _isMockMode.value
+            isSimulated = _isMockMode.value,
+            customName = currentCustomName,
+            vendorName = resolvedVendor
         )
 
         deviceCache[result.macAddress] = updatedDevice
@@ -147,10 +153,18 @@ class BleDeviceRepositoryImpl @Inject constructor(
         // Emit active devices sorted by raw RSSI descending (PRD Section 2.2)
         _activeDevices.value = deviceCache.values.sortedByDescending { it.rawRssi }
 
-        // If it's a newly discovered device, persist immediately to Room
+        // If it's a newly discovered device, persist immediately to Room and check if customName exists
         if (isNewDevice) {
             repositoryScope.launch(Dispatchers.IO) {
-                deviceDao.upsertDevice(DeviceMapper.toEntity(updatedDevice))
+                val savedEntity = deviceDao.getDeviceByMac(result.macAddress)
+                if (savedEntity?.customName != null && currentCustomName == null) {
+                    deviceCache[result.macAddress]?.let { dev ->
+                        val withCustom = dev.copy(customName = savedEntity.customName)
+                        deviceCache[result.macAddress] = withCustom
+                        _activeDevices.value = deviceCache.values.sortedByDescending { it.rawRssi }
+                    }
+                }
+                deviceDao.upsertDevice(DeviceMapper.toEntity(updatedDevice, savedEntity?.firstSeenTimestamp))
             }
         }
     }
@@ -194,5 +208,18 @@ class BleDeviceRepositoryImpl @Inject constructor(
 
     override suspend fun deleteHistoryDevice(macAddress: String) {
         deviceDao.deleteDeviceByMac(macAddress)
+    }
+
+    override suspend fun updateCustomDeviceName(macAddress: String, customName: String) {
+        val trimmed = customName.trim()
+        val existing = deviceCache[macAddress]
+        if (existing != null) {
+            val updated = existing.copy(customName = trimmed.ifBlank { null })
+            deviceCache[macAddress] = updated
+            _activeDevices.value = deviceCache.values.sortedByDescending { it.rawRssi }
+            deviceDao.upsertDevice(DeviceMapper.toEntity(updated))
+        } else {
+            deviceDao.updateCustomName(macAddress, trimmed)
+        }
     }
 }

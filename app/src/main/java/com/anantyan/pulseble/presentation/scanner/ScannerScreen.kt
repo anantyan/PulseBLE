@@ -61,7 +61,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.anantyan.pulseble.domain.model.BleDevice
 import com.anantyan.pulseble.presentation.components.BleDeviceCard
+import com.anantyan.pulseble.presentation.components.RenameDeviceDialog
 import com.anantyan.pulseble.presentation.components.StatusBanner
 import com.anantyan.pulseble.presentation.theme.DarkBackground
 import com.anantyan.pulseble.presentation.theme.DarkSurface
@@ -86,9 +88,11 @@ fun ScannerScreen(
     onEnableBluetoothClick: () -> Unit,
     onRequestPermissionsClick: () -> Unit,
     onDismissError: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onUpdateCustomName: (String, String) -> Unit = { _, _ -> }
 ) {
     var showFilterPanel by remember { mutableStateOf(false) }
+    var renamingDevice by remember { mutableStateOf<BleDevice?>(null) }
 
     val infiniteTransition = rememberInfiniteTransition(label = "LivePulse")
     val pulseAlpha by infiniteTransition.animateFloat(
@@ -418,10 +422,24 @@ fun ScannerScreen(
                 ) { device ->
                     BleDeviceCard(
                         device = device,
-                        onClick = { onDeviceClick(device.macAddress) }
+                        onClick = { onDeviceClick(device.macAddress) },
+                        onRenameClick = { renamingDevice = device }
                     )
                 }
             }
+        }
+
+        // Rename Device Dialog
+        renamingDevice?.let { dev ->
+            RenameDeviceDialog(
+                macAddress = dev.macAddress,
+                currentDisplayName = dev.customName ?: dev.displayName,
+                onConfirm = { newName ->
+                    onUpdateCustomName(dev.macAddress, newName)
+                    renamingDevice = null
+                },
+                onDismiss = { renamingDevice = null }
+            )
         }
     }
 }

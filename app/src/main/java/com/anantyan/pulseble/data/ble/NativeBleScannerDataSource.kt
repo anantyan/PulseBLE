@@ -7,6 +7,8 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
+import android.os.Build
+import com.anantyan.pulseble.core.BleCompanyIdentifiers
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -52,16 +54,58 @@ open class NativeBleScannerDataSource @Inject constructor(
                 result?.let {
                     val device = it.device
                     val address = device.address ?: return
-                    val name = device.name ?: it.scanRecord?.deviceName ?: ""
+
+                    // 1. Check user-assigned alias on Android 11+ (API 30+)
+                    var aliasName: String? = null
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        try {
+                            aliasName = device.alias?.takeIf { a -> a.isNotBlank() }
+                        } catch (_: SecurityException) {
+                            // Safe fallback if permission is missing
+                        }
+                    }
+
+                    // 2. Check bonded devices for custom alias or saved name
+                    if (aliasName == null) {
+                        try {
+                            val bonded = adapter.bondedDevices?.firstOrNull { b ->
+                                b.address.equals(address, ignoreCase = true)
+                            }
+                            if (bonded != null) {
+                                aliasName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                    bonded.alias?.takeIf { a -> a.isNotBlank() } ?: bonded.name
+                                } else {
+                                    bonded.name
+                                }
+                            }
+                        } catch (_: SecurityException) {
+                            // Safe fallback
+                        }
+                    }
+
+                    // 3. Check advertised device name (device.name, scanRecord.deviceName, or raw AD bytes)
+                    val advertisedName = try {
+                        device.name?.takeIf { n -> n.isNotBlank() }
+                    } catch (_: SecurityException) {
+                        null
+                    }
+                        ?: it.scanRecord?.deviceName?.takeIf { n -> n.isNotBlank() }
+                        ?: BleCompanyIdentifiers.extractAdvertisedNameFromBytes(it.scanRecord?.bytes)
+
+                    // 4. Resolve vendor identity (e.g., Apple, Samsung, Xiaomi) from manufacturer data or services
+                    val vendorName = BleCompanyIdentifiers.resolveVendor(it.scanRecord)
+
+                    val resolvedName = aliasName ?: advertisedName ?: ""
                     val txPower = it.scanRecord?.txPowerLevel.takeIf { p -> p != Int.MIN_VALUE }
 
                     trySend(
                         BleScanResult(
                             macAddress = address,
-                            name = name,
+                            name = resolvedName,
                             rssi = it.rssi,
                             txPower = txPower,
-                            timestamp = System.currentTimeMillis()
+                            timestamp = System.currentTimeMillis(),
+                            vendorName = vendorName
                         )
                     )
                 }

@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Timeline
@@ -33,6 +34,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import com.anantyan.pulseble.domain.model.ProximityZone
 import com.anantyan.pulseble.presentation.components.ConcentricRadarCanvas
 import com.anantyan.pulseble.presentation.components.HapticProximityEngine
+import com.anantyan.pulseble.presentation.components.RenameDeviceDialog
 import com.anantyan.pulseble.presentation.components.RssiSparklineChart
 import com.anantyan.pulseble.presentation.theme.DarkBackground
 import com.anantyan.pulseble.presentation.theme.DarkSurface
@@ -61,11 +66,13 @@ import java.util.Locale
 fun RadarScreen(
     state: RadarUiState,
     onBackClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onUpdateCustomName: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val device = state.device
     val zone = device?.proximityZone ?: ProximityZone.LOST
+    var showRenameDialog by remember { mutableStateOf(false) }
 
     val animatedAccentColor by animateColorAsState(
         targetValue = zone.displayColor,
@@ -111,8 +118,29 @@ fun RadarScreen(
                     )
                 }
             },
+            actions = {
+                IconButton(onClick = { showRenameDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Ubah Nama",
+                        tint = TextSecondary
+                    )
+                }
+            },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
         )
+
+        if (showRenameDialog && device != null) {
+            RenameDeviceDialog(
+                macAddress = state.macAddress,
+                currentDisplayName = device.customName ?: device.displayName,
+                onConfirm = { newName ->
+                    onUpdateCustomName(newName)
+                    showRenameDialog = false
+                },
+                onDismiss = { showRenameDialog = false }
+            )
+        }
 
         Column(
             modifier = Modifier

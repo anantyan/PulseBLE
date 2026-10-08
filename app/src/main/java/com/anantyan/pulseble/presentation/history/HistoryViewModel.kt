@@ -31,7 +31,8 @@ class HistoryViewModel @Inject constructor(
             devices
         } else {
             devices.filter {
-                it.name.contains(query, ignoreCase = true) ||
+                it.displayName.contains(query, ignoreCase = true) ||
+                        it.name.contains(query, ignoreCase = true) ||
                         it.macAddress.contains(query, ignoreCase = true)
             }
         }
@@ -59,6 +60,12 @@ class HistoryViewModel @Inject constructor(
     fun deleteDevice(macAddress: String) {
         viewModelScope.launch {
             repository.deleteHistoryDevice(macAddress)
+        }
+    }
+
+    fun updateCustomName(macAddress: String, customName: String) {
+        viewModelScope.launch {
+            repository.updateCustomDeviceName(macAddress, customName)
         }
     }
 }
