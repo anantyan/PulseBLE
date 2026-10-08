@@ -9,6 +9,11 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.net.Uri
+import android.provider.Settings
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -33,6 +38,9 @@ class MainActivity : ComponentActivity() {
         checkBluetoothStatus()
     }
 
+    private val showSettingsDialog = androidx.compose.runtime.mutableStateOf(false)
+    private var hasRequestedPermissionsOnce = false
+
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -40,6 +48,14 @@ class MainActivity : ComponentActivity() {
         scannerViewModel.setPermissionsGranted(allGranted)
         if (allGranted) {
             scannerViewModel.startScanning()
+        } else {
+            val anyPermanentlyDenied = getRequiredPermissions().any { perm ->
+                ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED &&
+                !shouldShowRequestPermissionRationale(perm)
+            }
+            if (anyPermanentlyDenied && hasRequestedPermissionsOnce) {
+                showSettingsDialog.value = true
+            }
         }
     }
 
@@ -80,6 +96,34 @@ class MainActivity : ComponentActivity() {
                     onEnableBluetooth = { requestEnableBluetooth() },
                     onRequestPermissions = { requestRequiredPermissions() }
                 )
+
+                if (showSettingsDialog.value) {
+                    AlertDialog(
+                        onDismissRequest = { showSettingsDialog.value = false },
+                        title = { Text("Izin Aplikasi Dibutuhkan") },
+                        text = {
+                            Text("PulseBLE membutuhkan izin Bluetooth untuk memindai sinyal beacon di sekitar. Harap aktifkan izin secara manual melalui Pengaturan Aplikasi.")
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showSettingsDialog.value = false
+                                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                        data = Uri.fromParts("package", packageName, null)
+                                    }
+                                    startActivity(intent)
+                                }
+                            ) {
+                                Text("Buka Pengaturan")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showSettingsDialog.value = false }) {
+                                Text("Batal")
+                            }
+                        }
+                    )
+                }
             }
         }
     }
@@ -127,7 +171,16 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestRequiredPermissions() {
-        permissionLauncher.launch(getRequiredPermissions())
+        val anyPermanentlyDenied = getRequiredPermissions().any { perm ->
+            ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED &&
+            !shouldShowRequestPermissionRationale(perm)
+        }
+        if (hasRequestedPermissionsOnce && anyPermanentlyDenied) {
+            showSettingsDialog.value = true
+        } else {
+            hasRequestedPermissionsOnce = true
+            permissionLauncher.launch(getRequiredPermissions())
+        }
     }
 
     private fun requestEnableBluetooth() {
