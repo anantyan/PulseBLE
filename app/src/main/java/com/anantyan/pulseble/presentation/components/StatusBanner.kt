@@ -58,18 +58,7 @@ fun StatusBanner(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if (!isBluetoothEnabled) {
-                BannerItem(
-                    icon = Icons.Default.BluetoothDisabled,
-                    title = "Bluetooth Nonaktif",
-                    description = "Nyalakan Bluetooth untuk memindai perangkat BLE di sekitar.",
-                    buttonText = "Nyalakan",
-                    accentColor = SignalWeak,
-                    onButtonClick = onEnableBluetoothClick
-                )
-            }
-
-            if (!hasPermissions && isBluetoothEnabled) {
+            if (!hasPermissions) {
                 BannerItem(
                     icon = Icons.Default.Warning,
                     title = "Izin Diperlukan",
@@ -77,6 +66,15 @@ fun StatusBanner(
                     buttonText = "Berikan Izin",
                     accentColor = SignalVeryWeak,
                     onButtonClick = onRequestPermissionsClick
+                )
+            } else if (!isBluetoothEnabled) {
+                BannerItem(
+                    icon = Icons.Default.BluetoothDisabled,
+                    title = "Bluetooth Nonaktif",
+                    description = "Nyalakan Bluetooth untuk memindai perangkat BLE di sekitar.",
+                    buttonText = "Nyalakan",
+                    accentColor = SignalWeak,
+                    onButtonClick = onEnableBluetoothClick
                 )
             }
 

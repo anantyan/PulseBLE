@@ -36,6 +36,10 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         checkBluetoothStatus()
+        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        if (bluetoothAdapter?.isEnabled == true && hasRequiredPermissions()) {
+            scannerViewModel.startScanning()
+        }
     }
 
     private val showSettingsDialog = androidx.compose.runtime.mutableStateOf(false)
@@ -46,8 +50,12 @@ class MainActivity : ComponentActivity() {
     ) { permissions ->
         val allGranted = permissions.values.all { it }
         scannerViewModel.setPermissionsGranted(allGranted)
+        checkBluetoothStatus()
         if (allGranted) {
-            scannerViewModel.startScanning()
+            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+            if (bluetoothAdapter?.isEnabled == true) {
+                scannerViewModel.startScanning()
+            }
         } else {
             val anyPermanentlyDenied = getRequiredPermissions().any { perm ->
                 ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED &&
