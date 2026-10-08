@@ -16,7 +16,9 @@
 ---
 
 ## 📑 Daftar Isi
+- [Tangkapan Layar Aplikasi](#-tangkapan-layar-aplikasi-screenshots-showcase)
 - [Fitur Utama](#-fitur-utama)
+- [Desain Sistem & Dokumentasi Tambahan](#-desain-sistem--dokumentasi-tambahan)
 - [Arsitektur & Pola Desain](#-arsitektur--pola-desain)
 - [Model Matematika & Pemetaan Jarak PRD](#-model-matematika--pemetaan-jarak-prd)
 - [Struktur Proyek](#-struktur-proyek)
@@ -25,6 +27,22 @@
 - [Hardware & E2E Validation](#-hardware--e2e-validation)
 - [Asumsi Teknis & Batasan (Known Issues)](#-asumsi-teknis--batasan-known-issues)
 - [Build Artifact & GitHub Releases](#-build-artifact--github-releases)
+
+---
+
+## 📸 Tangkapan Layar Aplikasi (Screenshots Showcase)
+
+Berikut adalah antarmuka visual **PulseBLE v1.0.5** yang diuji langsung pada perangkat keras fisik **Xiaomi POCO (Android 16 / SDK 37)**:
+
+| 1. Splash Screen (`v1.0.5`) | 2. Dashboard Scanner | 3. Tactical Radar Canvas |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/01_splash_screen.png" width="220" alt="Splash Screen v1.0.5"/> | <img src="docs/screenshots/02_scanner_screen.png" width="220" alt="Scanner Screen"/> | <img src="docs/screenshots/03_radar_screen.png" width="220" alt="Radar Screen"/> |
+| **Radar Logo & Dynamic Version** | **Live BLE Scan & 44dp Pill Search** | **360° Sweep & Real-Time Sparkline** |
+
+| 4. Riwayat Perangkat (Room DB) | 5. Dialog Konsisten M3 |
+| :---: | :---: |
+| <img src="docs/screenshots/04_history_screen.png" width="220" alt="History Screen"/> | <img src="docs/screenshots/05_rename_dialog.png" width="220" alt="Rename Dialog"/> |
+| **Penyimpanan SQLite & Track Again 36dp** | **Material 3 AlertDialog & DarkSurface** |
 
 ---
 
@@ -67,6 +85,14 @@
   - Mencegah terjadinya `SecurityException` pada Android 12+ (API 31+) akibat pemanggilan intent Bluetooth sebelum izin `BLUETOOTH_CONNECT` disetujui.
 - **Bluetooth State Monitor**: Menggunakan `BroadcastReceiver` untuk memantau sakelar Bluetooth fisik secara *real-time*.
 - **Lifecycle-Aware Scanning (PRD 4.3)**: Terintegrasi dengan `DefaultLifecycleObserver`. Pemindaian otomatis di-**Pause** saat aplikasi masuk ke latar belakang (*background* / `onStop`) guna menghemat baterai, dan otomatis di-**Resume** saat aplikasi dibuka kembali (*foreground* / `onResume`).
+
+---
+
+## 🎨 Desain Sistem & Dokumentasi Tambahan
+
+Untuk dokumentasi arsitektur dan sistem visual yang mendalam, silakan merujuk pada dokumen khusus berikut:
+* 📘 [**DESIGN.md**](file:///C:/Users/aryar/Documents/StudioProjects/PulseBLE/DESIGN.md): Dokumentasi lengkap sistem desain *Tactical Dark Minimalist*, token warna 6-zona PRD, tipografi, komponen borderless, micro-motion, dan *Haptic Proximity Engine*.
+* 🧠 [**GEMINI.md**](file:///C:/Users/aryar/Documents/StudioProjects/PulseBLE/GEMINI.md): Playbook konfigurasi menyeluruh, detail lingkungan Android 17 (SDK 37), toolchain Gradle 9.1.0, arsitektur Clean/MVVM, dan catatan evolusi dari v1.0.0 hingga v1.0.5.
 
 ---
 
