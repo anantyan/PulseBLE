@@ -164,43 +164,28 @@ fun ScannerScreen(
 
                     Spacer(modifier = Modifier.width(10.dp))
 
-                    // Live Status Chip
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(
-                                if (state.isScanning) RadarEmerald.copy(alpha = 0.2f)
-                                else DarkSurfaceElevated
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = if (state.isScanning) RadarEmerald.copy(alpha = 0.4f) else Color.Transparent,
-                                shape = RoundedCornerShape(6.dp)
-                            )
-                            .padding(horizontal = 7.dp, vertical = 3.dp),
-                        contentAlignment = Alignment.Center
+                    // Live Status Indicator (Dot + text, no background or border, dynamic green / grey)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier = Modifier.padding(start = 2.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (state.isScanning) RadarEmerald.copy(alpha = pulseAlpha)
-                                        else TextMuted
-                                    )
-                            )
-                            Text(
-                                text = if (state.isScanning) "SCANNING" else "STANDBY",
-                                color = if (state.isScanning) RadarEmerald else TextMuted,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 0.5.sp
-                            )
-                        }
+                        Box(
+                            modifier = Modifier
+                                .size(7.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (state.isScanning) RadarEmerald.copy(alpha = pulseAlpha)
+                                    else TextMuted
+                                )
+                        )
+                        Text(
+                            text = if (state.isScanning) "SCANNING" else "STANDBY",
+                            color = if (state.isScanning) RadarEmerald else TextMuted,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.5.sp
+                        )
                     }
                 }
             },
