@@ -1,7 +1,7 @@
 # PulseBLE Memory & Configuration Playbook (GEMINI.md) 🧠
 **Dokumen Referensi Konfigurasi Sistem, Arsitektur, & Riwayat Evolusi Proyek**
 
-Dokumen ini mencatat seluruh konfigurasi, arsitektur, parameter teknis, keputusan desain, dan riwayat iterasi dari awal hingga versi **v1.0.5** pada proyek **PulseBLE**.
+Dokumen ini mencatat seluruh konfigurasi, arsitektur, parameter teknis, keputusan desain, dan riwayat iterasi dari awal hingga versi **v1.0.6** pada proyek **PulseBLE**.
 
 ---
 
@@ -11,7 +11,7 @@ Dokumen ini mencatat seluruh konfigurasi, arsitektur, parameter teknis, keputusa
 * **Tujuan**: Aplikasi Android modern pelacak kedekatan (*proximity tracker*) dan radar taktis untuk perangkat Bluetooth Low Energy (BLE) secara *real-time*.
 * **Repository Git**: `https://github.com/anantyan/PulseBLE.git`
 * **Branch Utama**: `main`
-* **Versi Rilis Saat Ini**: **`v1.0.5`** (`versionCode = 5`)
+* **Versi Rilis Saat Ini**: **`v1.0.6`** (`versionCode = 6`)
 * **Platform Target**: **Android 17 (API 37)** | **Compile SDK: 37** | **Min SDK: 24 (Android 7.0)**
 
 ---
@@ -175,7 +175,7 @@ com.anantyan.pulseble/
 6. **Prioritas Alur Permission**:
    * Memprioritaskan penanganan izin (`!hasPermissions`) di depan pengecekan sakelar Bluetooth (`!isBluetoothEnabled`) untuk mencegah `SecurityException` pada Android 12+.
 
-### Iterasi Terkini (v1.0.5)
+### Iterasi v1.0.5
 1. **Migrasi ke Android 17 (SDK 37)**:
    * `compileSdk = 37`
    * `targetSdk = 37`
@@ -189,12 +189,18 @@ com.anantyan.pulseble/
 4. **Pengujian Menyeluruh**:
    * 100% unit tests lolos tanpa kegagalan library.
    * E2E live validation pada Xiaomi POCO fisik via Wireless ADB.
-5. **Stabilitas Posisi Scroll & Animasi Re-order Real-Time**:
+
+### Iterasi Terkini (v1.0.6)
+1. **Stabilitas Posisi Scroll & Smart List Anchoring**:
    * Mengimplementasikan pelacakan `isAtTop` dan `anchoredKey` via `snapshotFlow` pada `LazyListState`.
-   * Saat berada di posisi paling atas (*top*), list dikunci pada index 0 offset 0 sehingga item dengan RSSI lebih kuat langsung tampil di atas dan item terdorong ke bawah secara alami tanpa ada item tersembunyi di atas layar yang memaksa pengguna scroll ke atas.
-   * Saat berada di tengah (*middle/bottom*), posisi scroll terkunci pada item yang sedang dibaca pengguna agar tampilan tidak meloncat saat ranking RSSI berganti.
-   * Penyesuaian otomatis di-pause saat `listState.isScrollInProgress` aktif guna mencegah benturan (*scroll fighting*) dengan jari pengguna.
-   * Menambahkan `Modifier.animateItem()` pada kartu perangkat sehingga transisi pergeseran naik-turun bergerak mengalir halus.
+   * **Top Anchor (Indeks 0, Offset 0)**: Saat pengguna berada di posisi paling atas (*top*), list dikunci pada item teratas sehingga penambahan/pembaruan item mengalir ke bawah secara alami, mengeliminasi anomali bug item baru muncul di atas layar tak terlihat yang memaksa pengguna scroll ke atas.
+   * **Middle/Bottom Anchor**: Saat pengguna membaca di tengah atau bawah (*middle/bottom*), posisi scroll terkunci pada item yang sedang dibaca pengguna agar tampilan stabil dan tidak melompat ketika ranking RSSI berganti.
+   * **Anti-Scroll Fighting**: Penyesuaian otomatis otomatis di-pause saat `listState.isScrollInProgress` aktif guna mencegah benturan (*gesture fighting*) dengan jari pengguna.
+2. **Micro-Motion Fluid Re-Ordering**:
+   * Menambahkan `Modifier.animateItem()` pada `BleDeviceCard` dan `HistoryItemCard` sehingga pergeseran posisi ranking sinyal bergerak mengalir halus.
+3. **Pembaruan Versi Rilis**:
+   * `versionCode = 6`
+   * `versionName = "1.0.6"`
 
 ---
 

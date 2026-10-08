@@ -1,7 +1,7 @@
 # PulseBLE Design System (DESIGN.md) 🎨
 **Tactical Dark Minimalist Interface & Micro-Motion System**
 
-Dokumen ini mendefinisikan sistem desain visual, token warna, tipografi, komponen UI, animasi, dan sensasi getar (*haptics*) untuk aplikasi **PulseBLE** versi **v1.0.5**.
+Dokumen ini mendefinisikan sistem desain visual, token warna, tipografi, komponen UI, animasi, dan sensasi getar (*haptics*) untuk aplikasi **PulseBLE** versi **v1.0.6**.
 
 ---
 
@@ -106,6 +106,10 @@ Aplikasi menggunakan perpaduan **Monospace** untuk metrik numerik/data teknis da
 3. **RSSI Sparkline Graph**:
    * Menggunakan bezier kurva halus (*cubicTo*) menghubungkan 25 titik riwayat kekuatan sinyal terakhir.
    * Dilengkapi efek gradient fill vertikal di bawah garis grafik.
+4. **Smart Scroll Anchoring & Fluid Item Re-ordering**:
+   * Item re-ordering animatif menggunakan `Modifier.animateItem()` dengan interpolasi perpindahan halus.
+   * Top-lock pinning (indeks 0, offset 0) mempertahankan posisi scroll saat berada di puncak daftar sehingga update data bertransisi ke bawah tanpa ada item tersembunyi di atas layar.
+   * Mid-scroll item tracking menstabilkan pandangan mata pengguna saat scrolling di area tengah/bawah agar konten tidak meloncat ketika ranking RSSI berganti.
 
 ---
 
@@ -118,4 +122,4 @@ Mesin haptik memberikan respon fisik dinamis saat pengguna mendekati target BLE:
 * **Zona 4–6 (> 10m / Lost)**: Haptic nonaktif untuk kenyamanan pengguna.
 
 ---
-*Dokumen ini merupakan acuan baku antarmuka PulseBLE v1.0.5.*
+*Dokumen ini merupakan acuan baku antarmuka PulseBLE v1.0.6.*

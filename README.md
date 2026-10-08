@@ -1,7 +1,7 @@
 # PulseBLE 📡
 **Real-Time Bluetooth LE Proximity Tracker & Tactical Radar**
 
-[![Release](https://img.shields.io/badge/Release-v1.0.5-00E5FF.svg)](https://github.com/anantyan/PulseBLE/releases)
+[![Release](https://img.shields.io/badge/Release-v1.0.6-00E5FF.svg)](https://github.com/anantyan/PulseBLE/releases)
 [![Android](https://img.shields.io/badge/Platform-Android%207.0%2B%20(API%2024%2B)-brightgreen.svg)](https://android.com)
 [![Target SDK](https://img.shields.io/badge/Target%20SDK-37%20(Compile%2037)-informational.svg)]()
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.3.20-blue.svg)](https://kotlinlang.org)
@@ -32,11 +32,11 @@
 
 ## 📸 Tangkapan Layar Aplikasi (Screenshots Showcase)
 
-Berikut adalah antarmuka visual **PulseBLE v1.0.5** yang diuji langsung pada perangkat keras fisik **Xiaomi POCO (Android 16 / SDK 37)**:
+Berikut adalah antarmuka visual **PulseBLE v1.0.6** yang diuji langsung pada perangkat keras fisik **Xiaomi POCO (Android 16 / SDK 37)**:
 
-| 1. Splash Screen (`v1.0.5`) | 2. Dashboard Scanner | 3. Tactical Radar Canvas |
+| 1. Splash Screen (`v1.0.6`) | 2. Dashboard Scanner | 3. Tactical Radar Canvas |
 | :---: | :---: | :---: |
-| <img src="docs/screenshots/01_splash_screen.png" width="220" alt="Splash Screen v1.0.5"/> | <img src="docs/screenshots/02_scanner_screen.png" width="220" alt="Scanner Screen"/> | <img src="docs/screenshots/03_radar_screen.png" width="220" alt="Radar Screen"/> |
+| <img src="docs/screenshots/01_splash_screen.png" width="220" alt="Splash Screen v1.0.6"/> | <img src="docs/screenshots/02_scanner_screen.png" width="220" alt="Scanner Screen"/> | <img src="docs/screenshots/03_radar_screen.png" width="220" alt="Radar Screen"/> |
 | **Radar Logo & Dynamic Version** | **Live BLE Scan & 44dp Pill Search** | **360° Sweep & Real-Time Sparkline** |
 
 | 4. Riwayat Perangkat (Room DB) | 5. Dialog Konsisten M3 |
@@ -57,6 +57,7 @@ Berikut adalah antarmuka visual **PulseBLE v1.0.5** yang diuji langsung pada per
   - Kolom pencarian instan berdesain **Full-Pill Compact (44dp)** berdasarkan **Nama Perangkat** atau **MAC Address**.
   - Tombol slider filter melingkar simetris (44dp circular) untuk mengatur ambang batas sinyal minimum (*Minimum RSSI Threshold Filter*, misal $\ge -80\text{ dBm}$).
 - **Snap Scroll Bar**: Search bar dan tombol filter otomatis tersembunyi halus saat scroll ke bawah (*scroll down*) dan muncul kembali saat scroll ke atas (*scroll up*) guna memaksimalkan ruang pandang daftar perangkat.
+- **Stabilitas Posisi Scroll & Re-ordering Halus (v1.0.6)**: Posisi scroll tetap stabil (*smart scroll anchoring*) saat data BLE terus diperbarui. Saat berada di paling atas (*top*), list terkunci di indeks 0 offset 0 sehingga item baru/terkuat tertata ke bawah secara alami tanpa ada item tersembunyi di atas layar. Saat pengguna membaca di bagian tengah/bawah (*middle/bottom*), item yang sedang dilihat tetap terkunci posisinya dan tidak meloncat saat ranking RSSI berganti. Dilengkapi animasi re-order `Modifier.animateItem()` yang mulus.
 
 ### 2. Detail Pelacakan (Tactical Radar View)
 - **Concentric Radar Canvas**: Visualisasi radar taktis dengan 5 lingkaran jarak konsentris (<1m, 1-3m, 3-10m, 10-20m, >20m), animasi sapuan berkas radar berputar (*sweeping beam*), dan penanda target (*blip marker*) dengan efek denyut aura (*pulsating aura*).
@@ -92,7 +93,7 @@ Berikut adalah antarmuka visual **PulseBLE v1.0.5** yang diuji langsung pada per
 
 Untuk dokumentasi arsitektur dan sistem visual yang mendalam, silakan merujuk pada dokumen khusus berikut:
 * 📘 [**DESIGN.md**](file:///C:/Users/aryar/Documents/StudioProjects/PulseBLE/DESIGN.md): Dokumentasi lengkap sistem desain *Tactical Dark Minimalist*, token warna 6-zona PRD, tipografi, komponen borderless, micro-motion, dan *Haptic Proximity Engine*.
-* 🧠 [**GEMINI.md**](file:///C:/Users/aryar/Documents/StudioProjects/PulseBLE/GEMINI.md): Playbook konfigurasi menyeluruh, detail lingkungan Android 17 (SDK 37), toolchain Gradle 9.1.0, arsitektur Clean/MVVM, dan catatan evolusi dari v1.0.0 hingga v1.0.5.
+* 🧠 [**GEMINI.md**](file:///C:/Users/aryar/Documents/StudioProjects/PulseBLE/GEMINI.md): Playbook konfigurasi menyeluruh, detail lingkungan Android 17 (SDK 37), toolchain Gradle 9.1.0, arsitektur Clean/MVVM, dan catatan evolusi dari v1.0.0 hingga v1.0.6.
 
 ---
 
@@ -236,7 +237,7 @@ com.anantyan.pulseble/
 | Library / Komponen | Versi | Peran & Alasan Pemilihan |
 | :--- | :--- | :--- |
 | **Android Application** | `compileSdk = 37`<br>`targetSdk = 37`<br>`minSdk = 24` | Mendukung Android modern (Android 14–17 / SDK 37) hingga kompatibilitas minimum Android 7.0 Nougat. |
-| **App Version** | `versionCode = 5`<br>`versionName = "1.0.5"` | Versi aplikasi stabil dengan integrasi `BuildConfig` dinamis. |
+| **App Version** | `versionCode = 6`<br>`versionName = "1.0.6"` | Versi aplikasi stabil dengan integrasi `BuildConfig` dinamis. |
 | **Android Gradle Plugin (AGP)** | `9.0.1` | Sistem build mutakhir Android Studio. |
 | **Gradle Wrapper** | `9.1.0` | Build orchestration berbasis declarative performance. |
 | **Kotlin** | `2.3.20` | Bahasa pemrograman utama dengan dukungan Coroutines & Flows kelas satu. |
@@ -317,8 +318,8 @@ Aplikasi telah divalidasi penuh secara *end-to-end* langsung pada perangkat kera
 ## 📦 Build Artifact & GitHub Releases
 
 Build artifact APK debug versi terbaru telah dikompilasi dan dapat diunduh langsung:
-- **Versi Rilis**: **`v1.0.5`**
-- **Kode Versi**: `versionCode 5`, `versionName "1.0.5"` (SDK 37 Target & Compile)
+- **Versi Rilis**: **`v1.0.6`**
+- **Kode Versi**: `versionCode 6`, `versionName "1.0.6"` (SDK 37 Target & Compile)
 - **Unduh APK**: [GitHub Releases — PulseBLE Latest Debug APK](https://github.com/anantyan/PulseBLE/releases)
 - **Path Lokal**: `app/build/outputs/apk/debug/app-debug.apk`
 - **Application ID**: `com.anantyan.pulseble`
