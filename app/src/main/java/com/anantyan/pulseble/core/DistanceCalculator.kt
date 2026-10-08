@@ -37,7 +37,8 @@ object DistanceCalculator {
         if (rssi <= -95.0) return 30.0 // Out of range bound
         if (rssi >= -15.0) return 0.3 // Clamped near bound
 
-        val exponent = (txPower1m - rssi) / (10.0 * pathLossExponent)
+        val effectiveTxPower = if (txPower1m in -85..-40) txPower1m else DEFAULT_TX_POWER_1M
+        val exponent = (effectiveTxPower - rssi) / (10.0 * pathLossExponent)
         val rawDistance = 10.0.pow(exponent)
         return rawDistance.coerceIn(0.2, 35.0)
     }
