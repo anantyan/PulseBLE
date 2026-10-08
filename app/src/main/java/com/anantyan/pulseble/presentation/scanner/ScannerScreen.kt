@@ -1,5 +1,9 @@
 package com.anantyan.pulseble.presentation.scanner
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -16,6 +20,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,9 +69,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -86,6 +94,15 @@ import com.anantyan.pulseble.presentation.theme.TextPrimary
 import com.anantyan.pulseble.presentation.theme.TextSecondary
 import kotlin.math.roundToInt
 
+private fun Context.findActivity(): Activity? {
+    var ctx = this
+    while (ctx is ContextWrapper) {
+        if (ctx is Activity) return ctx
+        ctx = ctx.baseContext
+    }
+    return null
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScannerScreen(
@@ -104,6 +121,11 @@ fun ScannerScreen(
     var renamingDevice by remember { mutableStateOf<BleDevice?>(null) }
     var isSearchVisible by remember { mutableStateOf(true) }
     val listState = rememberLazyListState()
+
+    val context = LocalContext.current
+    BackHandler {
+        context.findActivity()?.finish()
+    }
 
     // Nested scroll connection for snap collapsing/expanding search & filter
     val nestedScrollConnection = remember {
@@ -256,50 +278,73 @@ fun ScannerScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(
-                        value = state.searchQuery,
-                        onValueChange = onSearchQueryChange,
-                        modifier = Modifier.weight(1f),
-                        placeholder = {
-                            Text("Cari nama atau MAC...", color = TextMuted, fontSize = 13.sp)
-                        },
-                        leadingIcon = {
+                    // Full-pill compact search bar (height = 44.dp matching filter button)
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp)
+                            .clip(CircleShape)
+                            .background(DarkSurface)
+                            .border(1.dp, Color.White.copy(alpha = 0.12f), CircleShape)
+                            .padding(horizontal = 14.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = "Search",
                                 tint = TextMuted,
                                 modifier = Modifier.size(18.dp)
                             )
-                        },
-                        trailingIcon = {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier.weight(1f),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                if (state.searchQuery.isEmpty()) {
+                                    Text(
+                                        text = "Cari nama atau MAC...",
+                                        color = TextMuted,
+                                        fontSize = 13.sp
+                                    )
+                                }
+                                BasicTextField(
+                                    value = state.searchQuery,
+                                    onValueChange = onSearchQueryChange,
+                                    singleLine = true,
+                                    textStyle = TextStyle(
+                                        color = TextPrimary,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Normal
+                                    ),
+                                    cursorBrush = SolidColor(ElectricBlue),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                             if (state.searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { onSearchQueryChange("") }) {
+                                IconButton(
+                                    onClick = { onSearchQueryChange("") },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
                                     Icon(
                                         imageVector = Icons.Default.Clear,
                                         contentDescription = "Clear",
                                         tint = TextMuted,
-                                        modifier = Modifier.size(18.dp)
+                                        modifier = Modifier.size(16.dp)
                                     )
                                 }
                             }
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = DarkSurface,
-                            unfocusedContainerColor = DarkSurface,
-                            focusedBorderColor = ElectricBlue,
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                            focusedTextColor = TextPrimary,
-                            unfocusedTextColor = TextPrimary
-                        )
-                    )
+                        }
+                    }
 
-                    // Filter Slider Toggle Button
+                    // Filter Slider Toggle Button (Full-pill circular 44.dp)
                     Box(
                         modifier = Modifier
-                            .size(52.dp)
-                            .clip(RoundedCornerShape(12.dp))
+                            .size(44.dp)
+                            .clip(CircleShape)
                             .background(
                                 if (showFilterPanel || state.minRssiThreshold > -100) ElectricBlue.copy(alpha = 0.2f)
                                 else DarkSurface
@@ -307,8 +352,8 @@ fun ScannerScreen(
                             .border(
                                 1.dp,
                                 if (showFilterPanel || state.minRssiThreshold > -100) ElectricBlue
-                                else Color.White.copy(alpha = 0.1f),
-                                RoundedCornerShape(12.dp)
+                                else Color.White.copy(alpha = 0.12f),
+                                CircleShape
                             )
                             .clickable { showFilterPanel = !showFilterPanel },
                         contentAlignment = Alignment.Center
@@ -317,7 +362,7 @@ fun ScannerScreen(
                             imageVector = Icons.Default.Tune,
                             contentDescription = "Filter RSSI",
                             tint = if (showFilterPanel || state.minRssiThreshold > -100) ElectricBlue else TextSecondary,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(19.dp)
                         )
                     }
                 }

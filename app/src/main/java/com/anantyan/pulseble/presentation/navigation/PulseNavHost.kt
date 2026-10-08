@@ -79,12 +79,21 @@ fun PulseNavHost(
                             selected = selected,
                             onClick = {
                                 if (currentRoute != item.screen.route) {
-                                    navController.navigate(item.screen.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
+                                    if (item.screen == NavScreen.Scanner) {
+                                        navController.navigate(NavScreen.Scanner.route) {
+                                            popUpTo(NavScreen.Scanner.route) {
+                                                inclusive = false
+                                            }
+                                            launchSingleTop = true
                                         }
-                                        launchSingleTop = true
-                                        restoreState = true
+                                    } else {
+                                        navController.navigate(item.screen.route) {
+                                            popUpTo(NavScreen.Scanner.route) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
                                     }
                                 }
                             },
