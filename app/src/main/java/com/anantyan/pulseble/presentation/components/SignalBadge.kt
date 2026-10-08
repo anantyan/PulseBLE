@@ -1,14 +1,12 @@
 package com.anantyan.pulseble.presentation.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,22 +25,16 @@ fun SignalBadge(
     showDistance: Boolean = true
 ) {
     val badgeColor = zone.displayColor
-    val backgroundColor = badgeColor.copy(alpha = 0.15f)
-    val borderColor = badgeColor.copy(alpha = 0.45f)
 
     Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(backgroundColor)
-            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = modifier.padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // Glowing status dot
+        // Radar status dot
         Box(
             modifier = Modifier
-                .size(8.dp)
+                .size(7.dp)
                 .clip(CircleShape)
                 .background(badgeColor)
         )
@@ -50,7 +42,7 @@ fun SignalBadge(
         Text(
             text = zone.categoryName,
             color = badgeColor,
-            fontSize = 11.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold
         )
 
