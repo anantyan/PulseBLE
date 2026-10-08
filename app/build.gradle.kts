@@ -8,14 +8,14 @@ plugins {
 
 android {
     namespace = "com.anantyan.pulseble"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.anantyan.pulseble"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 4
-        versionName = "1.0.4"
+        targetSdk = 37
+        versionCode = 5
+        versionName = "1.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

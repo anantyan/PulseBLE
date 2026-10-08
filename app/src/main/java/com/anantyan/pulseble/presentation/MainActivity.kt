@@ -2,6 +2,7 @@ package com.anantyan.pulseble.presentation
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -32,11 +33,13 @@ class MainActivity : ComponentActivity() {
 
     private val scannerViewModel: ScannerViewModel by viewModels()
 
+    private val bluetoothAdapter: BluetoothAdapter?
+        get() = (getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
+
     private val bluetoothEnableLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         checkBluetoothStatus()
-        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         if (bluetoothAdapter?.isEnabled == true && hasRequiredPermissions()) {
             scannerViewModel.startScanning()
         }
@@ -52,7 +55,6 @@ class MainActivity : ComponentActivity() {
         scannerViewModel.setPermissionsGranted(allGranted)
         checkBluetoothStatus()
         if (allGranted) {
-            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             if (bluetoothAdapter?.isEnabled == true) {
                 scannerViewModel.startScanning()
             }
@@ -152,7 +154,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkBluetoothStatus() {
-        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         val isEnabled = bluetoothAdapter?.isEnabled == true
         scannerViewModel.setBluetoothEnabled(isEnabled)
     }

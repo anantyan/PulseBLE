@@ -1,9 +1,9 @@
 # PulseBLE 📡
 **Real-Time Bluetooth LE Proximity Tracker & Tactical Radar**
 
-[![Release](https://img.shields.io/badge/Release-v1.0.4-00E5FF.svg)](https://github.com/anantyan/PulseBLE/releases)
+[![Release](https://img.shields.io/badge/Release-v1.0.5-00E5FF.svg)](https://github.com/anantyan/PulseBLE/releases)
 [![Android](https://img.shields.io/badge/Platform-Android%207.0%2B%20(API%2024%2B)-brightgreen.svg)](https://android.com)
-[![Target SDK](https://img.shields.io/badge/Target%20SDK-34%20(Compile%2036)-informational.svg)]()
+[![Target SDK](https://img.shields.io/badge/Target%20SDK-37%20(Compile%2037)-informational.svg)]()
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.3.20-blue.svg)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20%2B%20Material%203-navy.svg)](https://developer.android.com/jetpack/compose)
 [![AGP](https://img.shields.io/badge/AGP-9.0.1-green.svg)]()
@@ -209,8 +209,8 @@ com.anantyan.pulseble/
 
 | Library / Komponen | Versi | Peran & Alasan Pemilihan |
 | :--- | :--- | :--- |
-| **Android Application** | `compileSdk = 36`<br>`targetSdk = 34`<br>`minSdk = 24` | Mendukung Android modern (Android 14–16) hingga kompatibilitas minimum Android 7.0 Nougat. |
-| **App Version** | `versionCode = 4`<br>`versionName = "1.0.4"` | Versi aplikasi stabil dengan integrasi `BuildConfig` dinamis. |
+| **Android Application** | `compileSdk = 37`<br>`targetSdk = 37`<br>`minSdk = 24` | Mendukung Android modern (Android 14–17 / SDK 37) hingga kompatibilitas minimum Android 7.0 Nougat. |
+| **App Version** | `versionCode = 5`<br>`versionName = "1.0.5"` | Versi aplikasi stabil dengan integrasi `BuildConfig` dinamis. |
 | **Android Gradle Plugin (AGP)** | `9.0.1` | Sistem build mutakhir Android Studio. |
 | **Gradle Wrapper** | `9.1.0` | Build orchestration berbasis declarative performance. |
 | **Kotlin** | `2.3.20` | Bahasa pemrograman utama dengan dukungan Coroutines & Flows kelas satu. |
@@ -234,7 +234,7 @@ com.anantyan.pulseble/
 ### Kebutuhan Sistem:
 - **Android Studio**: Ladybug / Meerkat (atau versi terbaru).
 - **JDK**: Java 17 atau 21.
-- **Android SDK**: `compileSdk = 36`, `targetSdk = 34`, `minSdk = 24`.
+- **Android SDK**: `compileSdk = 37`, `targetSdk = 37`, `minSdk = 24`, `buildTools = 37.0.0`.
 
 ### Langkah-langkah:
 1. **Clone Repository**:
@@ -291,8 +291,8 @@ Aplikasi telah divalidasi penuh secara *end-to-end* langsung pada perangkat kera
 ## 📦 Build Artifact & GitHub Releases
 
 Build artifact APK debug versi terbaru telah dikompilasi dan dapat diunduh langsung:
-- **Versi Rilis**: **`v1.0.4`**
-- **Kode Versi**: `versionCode 4`, `versionName "1.0.4"`
+- **Versi Rilis**: **`v1.0.5`**
+- **Kode Versi**: `versionCode 5`, `versionName "1.0.5"` (SDK 37 Target & Compile)
 - **Unduh APK**: [GitHub Releases — PulseBLE Latest Debug APK](https://github.com/anantyan/PulseBLE/releases)
 - **Path Lokal**: `app/build/outputs/apk/debug/app-debug.apk`
 - **Application ID**: `com.anantyan.pulseble`
