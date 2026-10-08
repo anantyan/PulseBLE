@@ -102,21 +102,6 @@ fun BleDeviceCard(
                                     .clickable { onRenameClick() }
                             )
                         }
-                        if (device.isSimulated) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(NeonCyan.copy(alpha = 0.2f))
-                                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                            ) {
-                                Text(
-                                    text = "DEMO",
-                                    color = NeonCyan,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
                     }
 
                     Spacer(modifier = Modifier.height(2.dp))

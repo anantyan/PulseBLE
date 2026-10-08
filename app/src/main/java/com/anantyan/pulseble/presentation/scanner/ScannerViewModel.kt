@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anantyan.pulseble.domain.repository.BleDeviceRepository
 import com.anantyan.pulseble.domain.usecase.GetActiveDevicesUseCase
-import com.anantyan.pulseble.domain.usecase.SetMockModeUseCase
 import com.anantyan.pulseble.domain.usecase.StartScanUseCase
 import com.anantyan.pulseble.domain.usecase.StopScanUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +20,6 @@ class ScannerViewModel @Inject constructor(
     private val startScanUseCase: StartScanUseCase,
     private val stopScanUseCase: StopScanUseCase,
     private val getActiveDevicesUseCase: GetActiveDevicesUseCase,
-    private val setMockModeUseCase: SetMockModeUseCase,
     private val repository: BleDeviceRepository
 ) : ViewModel() {
 
@@ -37,7 +35,6 @@ class ScannerViewModel @Inject constructor(
 
     private data class ScanControlStatus(
         val isScanning: Boolean,
-        val isMockMode: Boolean,
         val scanError: String?
     )
 
@@ -58,10 +55,9 @@ class ScannerViewModel @Inject constructor(
 
     private val scanControlStatusFlow = combine(
         repository.isScanning,
-        repository.isMockMode,
         repository.scanError
-    ) { isScanning, isMock, error ->
-        ScanControlStatus(isScanning, isMock, error)
+    ) { isScanning, error ->
+        ScanControlStatus(isScanning, error)
     }
 
     val uiState: StateFlow<ScannerUiState> = combine(
@@ -86,7 +82,6 @@ class ScannerViewModel @Inject constructor(
         ScannerUiState(
             devices = filtered,
             isScanning = scanStatus.isScanning,
-            isMockMode = scanStatus.isMockMode,
             scanError = scanStatus.scanError,
             searchQuery = filter.query,
             minRssiThreshold = filter.minRssi,
@@ -102,7 +97,7 @@ class ScannerViewModel @Inject constructor(
     )
 
     fun startScanning() {
-        if (!_isBluetoothEnabled.value && !repository.isMockMode.value) return
+        if (!_isBluetoothEnabled.value) return
         startScanUseCase()
     }
 
@@ -118,10 +113,6 @@ class ScannerViewModel @Inject constructor(
         }
     }
 
-    fun toggleMockMode(enabled: Boolean) {
-        setMockModeUseCase(enabled)
-    }
-
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
     }
@@ -132,14 +123,14 @@ class ScannerViewModel @Inject constructor(
 
     fun setBluetoothEnabled(enabled: Boolean) {
         _isBluetoothEnabled.value = enabled
-        if (!enabled && !uiState.value.isMockMode) {
+        if (!enabled) {
             stopScanning()
         }
     }
 
     fun setPermissionsGranted(granted: Boolean) {
         _hasPermissions.value = granted
-        if (!granted && !uiState.value.isMockMode) {
+        if (!granted) {
             stopScanning()
         }
     }

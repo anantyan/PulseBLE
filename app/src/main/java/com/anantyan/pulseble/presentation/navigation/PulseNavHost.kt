@@ -2,6 +2,7 @@ package com.anantyan.pulseble.presentation.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -57,6 +58,7 @@ fun PulseNavHost(
 
     Scaffold(
         modifier = modifier.fillMaxSize().background(DarkBackground),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar(
@@ -114,7 +116,6 @@ fun PulseNavHost(
                 ScannerScreen(
                     state = scannerState,
                     onToggleScan = { scannerViewModel.toggleScanning() },
-                    onToggleMockMode = { scannerViewModel.toggleMockMode(it) },
                     onSearchQueryChange = { scannerViewModel.onSearchQueryChanged(it) },
                     onMinRssiChange = { scannerViewModel.onMinRssiThresholdChanged(it) },
                     onDeviceClick = { mac ->

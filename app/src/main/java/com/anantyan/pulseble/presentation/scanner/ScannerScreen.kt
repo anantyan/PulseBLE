@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -43,8 +44,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -81,7 +80,6 @@ import kotlin.math.roundToInt
 fun ScannerScreen(
     state: ScannerUiState,
     onToggleScan: () -> Unit,
-    onToggleMockMode: (Boolean) -> Unit,
     onSearchQueryChange: (String) -> Unit,
     onMinRssiChange: (Int) -> Unit,
     onDeviceClick: (String) -> Unit,
@@ -138,7 +136,12 @@ fun ScannerScreen(
                                 if (state.isScanning) RadarEmerald.copy(alpha = 0.2f)
                                 else DarkSurfaceElevated
                             )
-                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                            .border(
+                                width = 1.dp,
+                                color = if (state.isScanning) RadarEmerald.copy(alpha = 0.4f) else Color.Transparent,
+                                shape = RoundedCornerShape(6.dp)
+                            )
+                            .padding(horizontal = 7.dp, vertical = 3.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(
@@ -158,35 +161,43 @@ fun ScannerScreen(
                                 text = if (state.isScanning) "SCANNING" else "STANDBY",
                                 color = if (state.isScanning) RadarEmerald else TextMuted,
                                 fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.5.sp
                             )
                         }
                     }
                 }
             },
             actions = {
-                // Mock Mode Toggle
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(end = 8.dp)
+                // Sleek primary scan toggle button right inside top app bar
+                Button(
+                    onClick = onToggleScan,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (state.isScanning) MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+                        else ElectricBlue.copy(alpha = 0.2f),
+                        contentColor = if (state.isScanning) MaterialTheme.colorScheme.error else ElectricBlue
+                    ),
+                    border = BorderStroke(
+                        1.dp,
+                        if (state.isScanning) MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+                        else ElectricBlue.copy(alpha = 0.6f)
+                    ),
+                    shape = RoundedCornerShape(20.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    modifier = Modifier
+                        .height(34.dp)
+                        .padding(end = 8.dp)
                 ) {
-                    Text(
-                        text = "Demo",
-                        fontSize = 11.sp,
-                        color = if (state.isMockMode) NeonCyan else TextMuted,
-                        fontWeight = FontWeight.SemiBold
+                    Icon(
+                        imageVector = if (state.isScanning) Icons.Default.Stop else Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Switch(
-                        checked = state.isMockMode,
-                        onCheckedChange = onToggleMockMode,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = NeonCyan,
-                            uncheckedThumbColor = TextMuted,
-                            uncheckedTrackColor = DarkSurface
-                        ),
-                        modifier = Modifier.size(width = 44.dp, height = 24.dp)
+                    Text(
+                        text = if (state.isScanning) "Hentikan" else "Pindai",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             },
@@ -334,11 +345,11 @@ fun ScannerScreen(
                 }
             }
 
-            // Controls & Counter Header
+            // Counter Header & Active Filter Reset
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 4.dp),
+                    .padding(vertical = 2.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -349,26 +360,29 @@ fun ScannerScreen(
                     fontWeight = FontWeight.SemiBold
                 )
 
-                // Start/Stop Primary Scan Button
-                Button(
-                    onClick = onToggleScan,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (state.isScanning) MaterialTheme.colorScheme.error else ElectricBlue
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = if (state.isScanning) Icons.Default.Stop else Icons.Default.PlayArrow,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = if (state.isScanning) "Hentikan Scan" else "Mulai Scan",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                if (state.minRssiThreshold > -100) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(ElectricBlue.copy(alpha = 0.15f))
+                            .clickable { onMinRssiChange(-100) }
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = "≥ ${state.minRssiThreshold} dBm",
+                            color = ElectricBlue,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Reset filter",
+                            tint = ElectricBlue,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
                 }
             }
         }
@@ -401,7 +415,7 @@ fun ScannerScreen(
                     )
                     Text(
                         text = if (state.isScanning) "Mendeteksi beacon & advertising packets secara real-time."
-                        else "Tekan 'Mulai Scan' atau aktifkan mode 'Demo' untuk menampilkan perangkat.",
+                        else "Tekan tombol 'Pindai' di atas untuk mulai mencari perangkat Bluetooth di sekitar.",
                         color = TextMuted,
                         fontSize = 12.sp,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center

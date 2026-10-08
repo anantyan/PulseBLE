@@ -24,12 +24,6 @@ class GetActiveDevicesUseCase @Inject constructor(
     operator fun invoke(): StateFlow<List<BleDevice>> = repository.activeDevices
 }
 
-class SetMockModeUseCase @Inject constructor(
-    private val repository: BleDeviceRepository
-) {
-    operator fun invoke(enabled: Boolean): Unit = repository.setMockMode(enabled)
-}
-
 class TrackDeviceUseCase @Inject constructor(
     private val repository: BleDeviceRepository
 ) {

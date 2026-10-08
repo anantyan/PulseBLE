@@ -5,7 +5,6 @@ import com.anantyan.pulseble.data.ble.BleScanResult
 import com.anantyan.pulseble.data.ble.NativeBleScannerDataSource
 import com.anantyan.pulseble.data.local.dao.DeviceDao
 import com.anantyan.pulseble.data.local.mapper.DeviceMapper
-import com.anantyan.pulseble.data.mock.MockBleScannerDataSource
 import com.anantyan.pulseble.domain.model.BleDevice
 import com.anantyan.pulseble.domain.repository.BleDeviceRepository
 import kotlinx.coroutines.CoroutineDispatcher
@@ -29,7 +28,6 @@ import javax.inject.Singleton
 @Singleton
 class BleDeviceRepositoryImpl @Inject constructor(
     private val nativeScanner: NativeBleScannerDataSource,
-    private val mockScanner: MockBleScannerDataSource,
     private val deviceDao: DeviceDao
 ) : BleDeviceRepository {
 
@@ -40,9 +38,6 @@ class BleDeviceRepositoryImpl @Inject constructor(
 
     private val _isScanning = MutableStateFlow(false)
     override val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
-
-    private val _isMockMode = MutableStateFlow(false)
-    override val isMockMode: StateFlow<Boolean> = _isMockMode.asStateFlow()
 
     private val _scanError = MutableStateFlow<String?>(null)
     override val scanError: StateFlow<String?> = _scanError.asStateFlow()
@@ -61,19 +56,6 @@ class BleDeviceRepositoryImpl @Inject constructor(
 
     override fun isBluetoothSupported(): Boolean = nativeScanner.isBluetoothSupported()
 
-    override fun setMockMode(enabled: Boolean) {
-        val wasScanning = _isScanning.value
-        if (wasScanning) {
-            stopScan()
-        }
-        _isMockMode.value = enabled
-        deviceCache.clear()
-        _activeDevices.value = emptyList()
-        if (wasScanning) {
-            startScan()
-        }
-    }
-
     override fun clearScanError() {
         _scanError.value = null
     }
@@ -83,10 +65,8 @@ class BleDeviceRepositoryImpl @Inject constructor(
         _scanError.value = null
         _isScanning.value = true
 
-        val scanner = if (_isMockMode.value) mockScanner else nativeScanner
-
         scanJob = repositoryScope.launch {
-            scanner.scan()
+            nativeScanner.scan()
                 .catch { throwable ->
                     _scanError.value = throwable.localizedMessage ?: "Scanning failed"
                     _isScanning.value = false
@@ -142,7 +122,6 @@ class BleDeviceRepositoryImpl @Inject constructor(
             txPower = result.txPower,
             rssiHistory = trimmedHistory,
             updateCount = updateCount,
-            isSimulated = _isMockMode.value,
             customName = currentCustomName,
             vendorName = resolvedVendor
         )

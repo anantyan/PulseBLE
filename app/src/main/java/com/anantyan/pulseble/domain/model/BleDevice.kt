@@ -11,7 +11,6 @@ data class BleDevice(
     val txPower: Int? = null,
     val rssiHistory: List<Int> = emptyList(),
     val updateCount: Int = 1,
-    val isSimulated: Boolean = false,
     val packetsPerSecond: Double = 0.0,
     val customName: String? = null,
     val vendorName: String? = null

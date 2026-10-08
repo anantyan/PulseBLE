@@ -7,12 +7,10 @@ import kotlinx.coroutines.flow.StateFlow
 interface BleDeviceRepository {
     val activeDevices: StateFlow<List<BleDevice>>
     val isScanning: StateFlow<Boolean>
-    val isMockMode: StateFlow<Boolean>
     val scanError: StateFlow<String?>
 
     fun startScan()
     fun stopScan()
-    fun setMockMode(enabled: Boolean)
     fun clearScanError()
 
     fun trackDevice(macAddress: String): Flow<BleDevice?>

@@ -4,7 +4,6 @@ import com.anantyan.pulseble.domain.model.BleDevice
 import com.anantyan.pulseble.domain.model.ProximityZone
 import com.anantyan.pulseble.domain.repository.BleDeviceRepository
 import com.anantyan.pulseble.domain.usecase.GetActiveDevicesUseCase
-import com.anantyan.pulseble.domain.usecase.SetMockModeUseCase
 import com.anantyan.pulseble.domain.usecase.StartScanUseCase
 import com.anantyan.pulseble.domain.usecase.StopScanUseCase
 import kotlinx.coroutines.Dispatchers
@@ -40,15 +39,11 @@ class ScannerViewModelTest {
         val isScanningFlow = MutableStateFlow(false)
         override val isScanning: StateFlow<Boolean> = isScanningFlow.asStateFlow()
 
-        val isMockModeFlow = MutableStateFlow(false)
-        override val isMockMode: StateFlow<Boolean> = isMockModeFlow.asStateFlow()
-
         val scanErrorFlow = MutableStateFlow<String?>(null)
         override val scanError: StateFlow<String?> = scanErrorFlow.asStateFlow()
 
         override fun startScan() { isScanningFlow.value = true }
         override fun stopScan() { isScanningFlow.value = false }
-        override fun setMockMode(enabled: Boolean) { isMockModeFlow.value = enabled }
         override fun clearScanError() { scanErrorFlow.value = null }
         override fun trackDevice(macAddress: String): Flow<BleDevice?> = flowOf(null)
         override fun getHistoryDevices(): Flow<List<BleDevice>> = flowOf(emptyList())
@@ -70,13 +65,11 @@ class ScannerViewModelTest {
         val startScan = StartScanUseCase(fakeRepository)
         val stopScan = StopScanUseCase(fakeRepository)
         val getActive = GetActiveDevicesUseCase(fakeRepository)
-        val setMock = SetMockModeUseCase(fakeRepository)
 
         viewModel = ScannerViewModel(
             startScanUseCase = startScan,
             stopScanUseCase = stopScan,
             getActiveDevicesUseCase = getActive,
-            setMockModeUseCase = setMock,
             repository = fakeRepository
         )
     }

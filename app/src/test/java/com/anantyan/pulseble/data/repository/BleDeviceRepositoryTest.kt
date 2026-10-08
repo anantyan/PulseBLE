@@ -4,7 +4,6 @@ import com.anantyan.pulseble.data.ble.BleScanResult
 import com.anantyan.pulseble.data.ble.NativeBleScannerDataSource
 import com.anantyan.pulseble.data.local.dao.DeviceDao
 import com.anantyan.pulseble.data.local.entity.DeviceEntity
-import com.anantyan.pulseble.data.mock.MockBleScannerDataSource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -57,34 +56,10 @@ class BleDeviceRepositoryTest {
     }
 
     private lateinit var fakeDao: FakeDeviceDao
-    private lateinit var mockScanner: MockBleScannerDataSource
 
     @Before
     fun setUp() {
         fakeDao = FakeDeviceDao()
-        mockScanner = MockBleScannerDataSource()
-    }
-
-    @Test
-    fun testMockModeActivationAndStopping() = runTest {
-        val fakeNativeScanner = object : NativeBleScannerDataSource() {
-            override fun scan(): Flow<BleScanResult> = flowOf()
-            override fun isBluetoothEnabled(): Boolean = true
-            override fun isBluetoothSupported(): Boolean = true
-        }
-
-        val repository = BleDeviceRepositoryImpl(
-            nativeScanner = fakeNativeScanner,
-            mockScanner = mockScanner,
-            deviceDao = fakeDao
-        )
-
-        assertFalse(repository.isMockMode.value)
-        repository.setMockMode(true)
-        assertTrue(repository.isMockMode.value)
-
-        repository.setMockMode(false)
-        assertFalse(repository.isMockMode.value)
     }
 
     @Test
@@ -124,7 +99,6 @@ class BleDeviceRepositoryTest {
 
         val repository = BleDeviceRepositoryImpl(
             nativeScanner = fakeNativeScanner,
-            mockScanner = mockScanner,
             deviceDao = fakeDao
         )
 
