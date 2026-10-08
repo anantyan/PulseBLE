@@ -213,7 +213,7 @@ com.anantyan.pulseble/
 ### Langkah-langkah:
 1. **Clone Repository**:
    ```bash
-   git clone <URL_REPOSITORY>
+   git clone https://github.com/anantyan/PulseBLE.git
    cd PulseBLE
    ```
 2. **Buka di Android Studio**:
@@ -233,17 +233,20 @@ com.anantyan.pulseble/
 
 ---
 
-## 🔄 Dual-Mode: Real Hardware vs Demo Emulator
+## 📡 Hardware & E2E Validation
 
-Aplikasi didesain untuk kenyamanan penguji/evaluator dalam kondisi apa pun:
+Aplikasi telah diuji dan divalidasi langsung pada perangkat keras fisik **Xiaomi POCO (Android 16 / API 36)** via ADB:
 
-1. **Mode Hardware Asli (Default)**:
-   - Menggunakan sensor Bluetooth LE fisik smartphone pengguna.
-   - Aplikasi akan meminta izin runtime Bluetooth & Lokasi saat pertama kali dibuka.
-   - Pindai berbagai gadget di sekitar Anda (Earphone TWS, Smartwatch, Laptop, Apple AirTag, SmartTag, ESP32, atau HP lain).
-2. **Mode Demo / Mock Simulator**:
-   - Jika penguji menjalankan aplikasi di **Android Studio Emulator** (yang secara bawaan tidak memiliki chip BLE fisik) atau berada di ruangan yang sepi beacon, cukup aktifkan sakelar **"Demo"** di bagian kanan atas layar.
-   - Simulator akan memancarkan 6 perangkat virtual dengan sinyal bervariasi dari jarak `<1 meter` hingga `Lost`, lengkap dengan simulasi pergerakan (*random-walk drift*) untuk menguji kelancaran jarum radar dan grafik sparkline.
+- **100% Native BLE Stack**: Terintegrasi langsung dengan Android `BluetoothLeScanner` native, menangkap ribuan advertising packets dari beragam periferal (earphone TWS, laptop, smartwatch, beacons, HP lain).
+- **Resolver Nama Cerdas**: Resolusi nama multi-layer (GATT Local Name, Scan Record AD Structures, Custom User Alias) dengan dukungan ganti nama kustom secara persisten.
+- **Hemat Daya & Lifecycle Resilient**: Otomatis menghentikan pemindaian di latar belakang (`onStop`) untuk mencegah kebocoran baterai (*zero background drain*).
+- **Uji Coba E2E Lengkap**:
+  - **TC-1 Runtime Permissions**: LULUS (Android 12–16 BLE Scan/Connect flow).
+  - **TC-2 BLE Discovery**: LULUS (Pencarian real-time, RSSI sorting & dynamic refresh).
+  - **TC-3 Detail & Signal Gauge**: LULUS (Akurasi kalkulasi jarak, formula path loss, nama kustom).
+  - **TC-4 Tactical Radar Canvas**: LULUS (Sweep radar 360°, zona sinyal interaktif, pelacakan target).
+  - **TC-5 Room Database Persistence**: LULUS (Penyimpanan lokal SQLite, filter riwayat, process-death resilience, dan hapus riwayat).
+  - **TC-6 Lifecycle & Battery Safety**: Sedang Berjalan (Background pause/resume & rotation resilience).
 
 ---
 
