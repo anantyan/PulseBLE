@@ -14,8 +14,8 @@ android {
         applicationId = "com.anantyan.pulseble"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 4
+        versionName = "1.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -35,7 +35,7 @@ android {
     buildFeatures {
         compose = true
         aidl = false
-        buildConfig = false
+        buildConfig = true
         shaders = false
     }
 

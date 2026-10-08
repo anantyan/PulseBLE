@@ -1,9 +1,12 @@
 # PulseBLE 📡
 **Real-Time Bluetooth LE Proximity Tracker & Tactical Radar**
 
+[![Release](https://img.shields.io/badge/Release-v1.0.4-00E5FF.svg)](https://github.com/anantyan/PulseBLE/releases)
 [![Android](https://img.shields.io/badge/Platform-Android%207.0%2B%20(API%2024%2B)-brightgreen.svg)](https://android.com)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.3-blue.svg)](https://kotlinlang.org)
+[![Target SDK](https://img.shields.io/badge/Target%20SDK-34%20(Compile%2036)-informational.svg)]()
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.20-blue.svg)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20%2B%20Material%203-navy.svg)](https://developer.android.com/jetpack/compose)
+[![AGP](https://img.shields.io/badge/AGP-9.0.1-green.svg)]()
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20MVVM-orange.svg)]()
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)]()
 
@@ -17,11 +20,11 @@
 - [Arsitektur & Pola Desain](#-arsitektur--pola-desain)
 - [Model Matematika & Pemetaan Jarak PRD](#-model-matematika--pemetaan-jarak-prd)
 - [Struktur Proyek](#-struktur-proyek)
-- [Teknologi & Library yang Digunakan](#-teknologi--library-yang-digunakan)
+- [Teknologi & Versi Library](#-teknologi--versi-library)
 - [Instruksi Setup & Menjalankan Aplikasi](#-instruksi-setup--menjalankan-aplikasi)
-- [Dual-Mode: Real Hardware vs Demo Emulator](#-dual-mode-real-hardware-vs-demo-emulator)
+- [Hardware & E2E Validation](#-hardware--e2e-validation)
 - [Asumsi Teknis & Batasan (Known Issues)](#-asumsi-teknis--batasan-known-issues)
-- [Build Artifact (APK)](#-build-artifact-apk)
+- [Build Artifact & GitHub Releases](#-build-artifact--github-releases)
 
 ---
 
@@ -30,28 +33,39 @@
 ### 1. Dashboard Utama (Scanner)
 - **Real-Time Scanning**: Mendeteksi sinyal beacon BLE aktif dengan native `BluetoothLeScanner` menggunakan coroutine `callbackFlow`.
 - **Informasi Lengkap**: Menampilkan Nama Perangkat, MAC Address/UUID, RSSI mentah (*raw dBm*), estimasi jarak (*meter*), dan meteran sinyal 4-bar visual.
-- **Kontrol Manual**: Tombol *Mulai Scan* dan *Hentikan Scan* yang responsif.
+- **Kontrol Manual**: Tombol *Mulai Scan* dan *Hentikan Scan* yang responsif langsung pada Top App Bar dengan indikator dinamis (*SCANNING* / *STANDBY*).
 - **Filter & Pengurutan Cerdas (PRD 2.2)**:
   - Otomatis mengurutkan daftar berdasarkan sinyal terkuat (RSSI tertinggi descending).
-  - Kolom pencarian instan berdasarkan **Nama Perangkat** atau **MAC Address**.
-  - Slider ambang batas sinyal minimum (*Minimum RSSI Threshold Filter*, misal $\ge -80\text{ dBm}$).
+  - Kolom pencarian instan berdesain **Full-Pill Compact (44dp)** berdasarkan **Nama Perangkat** atau **MAC Address**.
+  - Tombol slider filter melingkar simetris (44dp circular) untuk mengatur ambang batas sinyal minimum (*Minimum RSSI Threshold Filter*, misal $\ge -80\text{ dBm}$).
+- **Snap Scroll Bar**: Search bar dan tombol filter otomatis tersembunyi halus saat scroll ke bawah (*scroll down*) dan muncul kembali saat scroll ke atas (*scroll up*) guna memaksimalkan ruang pandang daftar perangkat.
 
 ### 2. Detail Pelacakan (Tactical Radar View)
 - **Concentric Radar Canvas**: Visualisasi radar taktis dengan 5 lingkaran jarak konsentris (<1m, 1-3m, 3-10m, 10-20m, >20m), animasi sapuan berkas radar berputar (*sweeping beam*), dan penanda target (*blip marker*) dengan efek denyut aura (*pulsating aura*).
-- **Indikator Kategori Sinyal Dinamis**: Badge visual yang berubah warna dan bentuk secara dinamis sesuai kategori zona kedekatan PRD.
+- **Indikator Kategori Sinyal Dinamis**: Badge visual yang berubah warna dan teks secara dinamis sesuai kategori zona kedekatan PRD tanpa outline/background kaku untuk estetika modern minimalis.
 - **Real-Time RSSI Sparkline Graph**: Grafik riwayat tren kekuatan sinyal 25 paket terakhir untuk memantau apakah perangkat sedang mendekat atau menjauh.
 - **Metrik Kestabilan Koneksi**: Pemantauan frekuensi penerimaan paket (*Update Rate* dalam Hz) dan tingkat fluktuasi sinyal (*Signal Jitter*).
 - **Haptic Proximity Ping**: Getaran taktil adaptif yang berdenyut lebih rapat dan intens saat target mendekat (<1 meter atau 1-3 meter).
+- **Ubah Nama Kustom**: Dialog modal ganti nama perangkat (*Custom Alias*) yang tersimpan persisten ke basis data lokal.
 
 ### 3. Riwayat Perangkat (History Log)
 - **Penyimpanan Lokal Persisten**: Menggunakan database SQLite lokal (**Room Database**) untuk menyimpan riwayat seluruh perangkat yang pernah terdeteksi agar tidak hilang saat aplikasi ditutup.
 - **Waktu Relatif**: Menampilkan waktu penemuan dalam format ramah pengguna (*"Baru saja"*, *"3 menit lalu"*, *"Kemarin"*).
-- **Aksi Track Again**: Pengguna dapat mengetuk item riwayat kapan saja untuk langsung membuka Radar View dan melanjutkan pelacakan perangkat tersebut.
-- **Manajemen Riwayat**: Opsi hapus item individual dan dialog konfirmasi *Hapus Semua Riwayat*.
+- **Aksi Track Again (Icon-Only)**: Tombol melingkar 36dp beraksen *Electric Blue* untuk langsung membuka Radar View dan melanjutkan pelacakan perangkat.
+- **Pencarian Riwayat**: Dilengkapi search bar full-pill 44dp dengan animasi snap scroll.
+- **Manajemen Riwayat**: Opsi hapus item individual dan dialog konfirmasi *Hapus Semua Riwayat* yang konsisten dengan desain sistem aplikasi.
 
-### 4. Error Handling & Resilience
-- **Bluetooth State Monitor**: Menggunakan `BroadcastReceiver` untuk memantau sakelar Bluetooth fisik secara *real-time*. Jika Bluetooth dimatikan pengguna, banner peringatan muncul dengan tombol 1-klik untuk menyalakannya kembali.
-- **Runtime Permissions Graceful Handling**: Mendukung izin modern Android 12+ (`BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`) dan Android lawas (`ACCESS_FINE_LOCATION`).
+### 4. Navigasi & Pengalaman Pengguna (UX)
+- **Interactive Tactical Splash Screen**: Transisi pembuka dengan radar canvas 360°, efek gelombang konsentris, logo radar taktis, pill status beacon, dan indikator versi dinamis.
+- **Non-Looping Navigation**: Navigasi bottom bar berakar pada Scanner (`popUpTo(NavScreen.Scanner)`). Berpindah tab berulang kali tidak menumpuk backstack, dan menekan tombol Back saat berada di Scanner langsung menutup aplikasi (*finish to launcher*).
+- **Konsistensi Modal Dialog**: Dialog ganti nama perangkat (`RenameDeviceDialog`) dan dialog hapus seluruh riwayat (`ClearHistoryDialog`) menggunakan arsitektur Material 3 `AlertDialog` standar, tombol aksi `TextButton` ("Batal" & "Simpan"/"Hapus Semua"), dan kontainer `DarkSurface` yang seragam.
+
+### 5. Error Handling, Permissions, & Resilience
+- **Prioritas Alur Izin & Bluetooth**:
+  - Jika izin belum diberikan (`!hasPermissions`), banner **"Izin Diperlukan"** dengan tombol **"Berikan Izin"** muncul pertama untuk meminta izin runtime Android.
+  - Setelah izin disetujui, jika Bluetooth mati (`!isBluetoothEnabled`), banner otomatis berganti ke **"Bluetooth Nonaktif"** dengan tombol **"Nyalakan"**.
+  - Mencegah terjadinya `SecurityException` pada Android 12+ (API 31+) akibat pemanggilan intent Bluetooth sebelum izin `BLUETOOTH_CONNECT` disetujui.
+- **Bluetooth State Monitor**: Menggunakan `BroadcastReceiver` untuk memantau sakelar Bluetooth fisik secara *real-time*.
 - **Lifecycle-Aware Scanning (PRD 4.3)**: Terintegrasi dengan `DefaultLifecycleObserver`. Pemindaian otomatis di-**Pause** saat aplikasi masuk ke latar belakang (*background* / `onStop`) guna menghemat baterai, dan otomatis di-**Resume** saat aplikasi dibuka kembali (*foreground* / `onResume`).
 
 ---
@@ -86,7 +100,7 @@ Aplikasi dibangun menggunakan prinsip **Clean Architecture** dan **MVVM (Model-V
 ```
 
 ### Mengapa Arsitektur Ini Dipilih?
-1. **Clean Architecture**: Memisahkan logika bisnis (Domain) dari detail implementasi Android (BLE hardware, Room SQLite, dan Compose UI). Sangat mempermudah pembuatan Unit Tests tanpa ketergantungan pada Android OS mocks.
+1. **Clean Architecture**: Memisahkan logika bisnis (Domain) dari detail implementasi Android (BLE hardware, Room SQLite, dan Compose UI). Mempermudah pembuatan Unit Tests tanpa ketergantungan pada Android OS mocks.
 2. **High-Throughput StateFlow Buffer**: Paket periklanan BLE di dunia nyata dapat masuk puluhan kali per detik (*high burst rate*). Menulis setiap paket langsung ke SQLite Room akan menyebabkan I/O churn dan penurunan frame rate (*jank*). Repository menggunakan in-memory cache StateFlow untuk UI 60fps, dikombinasikan dengan *debounced background flusher* (2 detik) ke Room DB.
 3. **Dependency Injection dengan Dagger Hilt**: Standar resmi Google Android yang menjamin *loose coupling*, mempermudah mock injection saat pengujian, dan mengelola lifecycle dependensi secara otomatis.
 
@@ -162,14 +176,17 @@ com.anantyan.pulseble/
     │   ├── BleDeviceCard.kt            # Tactical card with signal bars
     │   ├── ConcentricRadarCanvas.kt    # Sweeping radar canvas & blip pulse
     │   ├── HapticProximityEngine.kt    # Tactile proximity vibration
+    │   ├── RenameDeviceDialog.kt       # Consistent M3 device rename dialog
     │   ├── RssiSparklineChart.kt       # Real-time RSSI stability sparkline
-    │   ├── SignalBadge.kt              # PRD zone badge
+    │   ├── SignalBadge.kt              # Dynamic PRD zone badge
     │   └── StatusBanner.kt             # Bluetooth & permission recovery banner
     ├── navigation/
     │   ├── NavScreen.kt                # Routes & bottom nav items
-    │   └── PulseNavHost.kt             # Jetpack Navigation Compose host
+    │   └── PulseNavHost.kt             # Anti-looping single-top Jetpack Navigation
+    ├── splash/
+    │   └── SplashScreen.kt             # Interactive radar splash screen & version display
     ├── scanner/
-    │   ├── ScannerScreen.kt            # Dashboard Scanner UI
+    │   ├── ScannerScreen.kt            # Dashboard Scanner UI with pill search & circular filter
     │   ├── ScannerUiState.kt           # MVI/MVVM UI state
     │   └── ScannerViewModel.kt         # Search, RSSI slider filter, & sorting logic
     ├── radar/
@@ -177,7 +194,7 @@ com.anantyan.pulseble/
     │   ├── RadarUiState.kt             # Radar UI state
     │   └── RadarViewModel.kt           # Target tracking, Hz rate, & stability logic
     ├── history/
-    │   ├── HistoryScreen.kt            # History Log UI with Track Again action
+    │   ├── HistoryScreen.kt            # History Log UI with 36dp track action & pill search
     │   ├── HistoryUiState.kt           # History UI state
     │   └── HistoryViewModel.kt         # Room history query & clear logic
     └── theme/
@@ -188,18 +205,27 @@ com.anantyan.pulseble/
 
 ---
 
-## 🛠 Teknologi & Library yang Digunakan
+## 🛠 Teknologi & Versi Library
 
-| Library / Komponen | Versi | Alasan Pemilihan |
+| Library / Komponen | Versi | Peran & Alasan Pemilihan |
 | :--- | :--- | :--- |
-| **Kotlin** | `2.3.20` | Bahasa modern dengan fitur coroutines flow tingkat lanjut dan type-safety penuh. |
-| **Jetpack Compose + Material 3** | `BOM 2024.12` | Framework UI deklaratif modern resmi Google untuk performa render 60fps tanpa XML layout. |
-| **Dagger Hilt** | `2.60.1` | Dependency Injection standar industri dengan KSP code generation. |
-| **KSP (Kotlin Symbol Processing)** | `2.3.12` | Alternatif kapt modern dengan kecepatan kompilasi hingga 2x lebih cepat. |
-| **Room Database** | `2.7.2` | Abstraksi SQLite tipe aman resmi Google untuk persistence lokal riwayat perangkat. |
+| **Android Application** | `compileSdk = 36`<br>`targetSdk = 34`<br>`minSdk = 24` | Mendukung Android modern (Android 14–16) hingga kompatibilitas minimum Android 7.0 Nougat. |
+| **App Version** | `versionCode = 4`<br>`versionName = "1.0.4"` | Versi aplikasi stabil dengan integrasi `BuildConfig` dinamis. |
+| **Android Gradle Plugin (AGP)** | `9.0.1` | Sistem build mutakhir Android Studio. |
+| **Gradle Wrapper** | `9.1.0` | Build orchestration berbasis declarative performance. |
+| **Kotlin** | `2.3.20` | Bahasa pemrograman utama dengan dukungan Coroutines & Flows kelas satu. |
+| **KSP (Kotlin Symbol Processing)** | `2.3.12` | Pengganti modern apt/kapt untuk kompilasi Room & Hilt hingga 2x lebih cepat. |
+| **Jetpack Compose BOM** | `2024.12.01` | Bill of Materials resmi Google untuk konsistensi seluruh modul UI Compose. |
+| **Compose Material 3** | BOM `2024.12.01` | Desain antarmuka modern dengan token warna dinamis dan dark mode taktis. |
 | **Jetpack Navigation Compose** | `2.8.9` | Manajemen navigasi deklaratif antar layar dengan parameter transfer tipe aman. |
+| **Dagger Hilt** | `2.60.1` | Dependency Injection standar industri dengan integrasi lifecycle Jetpack. |
+| **Hilt Navigation Compose** | `1.2.0` | Integrasi scoping ViewModel otomatis terhadap Navigation BackStackEntry. |
+| **Room Database** | `2.7.2` | Abstraksi SQLite tipe aman resmi Google untuk persistence lokal riwayat perangkat. |
+| **AndroidX Core KTX** | `1.15.0` | Ekstensi Kotlin idiomatik untuk fungsionalitas inti platform Android. |
+| **AndroidX Lifecycle & ViewModels** | `2.8.7` | Manajemen state reaktif `StateFlow` dan siklus hidup `DefaultLifecycleObserver`. |
+| **AndroidX Activity Compose** | `1.10.1` | Integrasi `enableEdgeToEdge()` dan `BackHandler` responsif. |
 | **Kotlinx Coroutines & Flow** | `1.10.2` | Pengelolaan background threading reaktif untuk streaming data BLE tanpa blocking UI thread. |
-| **Turbine & JUnit4** | `1.2.1` | Pengujian reaktif untuk state flow dan unit test matematika. |
+| **Turbine & JUnit4** | `1.2.1` / `4.13.2` | Pengujian reaktif untuk state flow dan unit test matematika. |
 
 ---
 
@@ -208,7 +234,7 @@ com.anantyan.pulseble/
 ### Kebutuhan Sistem:
 - **Android Studio**: Ladybug / Meerkat (atau versi terbaru).
 - **JDK**: Java 17 atau 21.
-- **Android SDK**: `compileSdk = 36`, `targetSdk = 34`, `minSdk = 24` (Mendukung Android 7.0 Nougat hingga Android 14+).
+- **Android SDK**: `compileSdk = 36`, `targetSdk = 34`, `minSdk = 24`.
 
 ### Langkah-langkah:
 1. **Clone Repository**:
@@ -222,7 +248,7 @@ com.anantyan.pulseble/
    ```bash
    ./gradlew testDebugUnitTest
    ```
-   *Seluruh unit test matematika (DistanceCalculatorTest), mapper (DeviceMapperTest), repository (BleDeviceRepositoryTest), dan viewmodel (ScannerViewModelTest) akan dieksekusi.*
+   *Seluruh unit test matematika (`DistanceCalculatorTest`), mapper (`DeviceMapperTest`), repository (`BleDeviceRepositoryTest`), dan viewmodel (`ScannerViewModelTest`) akan dieksekusi secara otomatis.*
 4. **Build Debug APK**:
    ```bash
    ./gradlew assembleDebug
@@ -235,18 +261,16 @@ com.anantyan.pulseble/
 
 ## 📡 Hardware & E2E Validation
 
-Aplikasi telah diuji dan divalidasi langsung pada perangkat keras fisik **Xiaomi POCO (Android 16 / API 36)** via ADB:
+Aplikasi telah divalidasi penuh secara *end-to-end* langsung pada perangkat keras fisik **Xiaomi POCO (Android 16 / API 36)** via wireless ADB debugging:
 
-- **100% Native BLE Stack**: Terintegrasi langsung dengan Android `BluetoothLeScanner` native, menangkap ribuan advertising packets dari beragam periferal (earphone TWS, laptop, smartwatch, beacons, HP lain).
-- **Resolver Nama Cerdas**: Resolusi nama multi-layer (GATT Local Name, Scan Record AD Structures, Custom User Alias) dengan dukungan ganti nama kustom secara persisten.
-- **Hemat Daya & Lifecycle Resilient**: Otomatis menghentikan pemindaian di latar belakang (`onStop`) untuk mencegah kebocoran baterai (*zero background drain*).
-- **Uji Coba E2E Lengkap**:
-  - **TC-1 Runtime Permissions**: LULUS (Android 12–16 BLE Scan/Connect flow).
-  - **TC-2 BLE Discovery**: LULUS (Pencarian real-time, RSSI sorting & dynamic refresh).
-  - **TC-3 Detail & Signal Gauge**: LULUS (Akurasi kalkulasi jarak, formula path loss, nama kustom).
-  - **TC-4 Tactical Radar Canvas**: LULUS (Sweep radar 360°, zona sinyal interaktif, pelacakan target).
-  - **TC-5 Room Database Persistence**: LULUS (Penyimpanan lokal SQLite, filter riwayat, process-death resilience, dan hapus riwayat).
-  - **TC-6 Lifecycle & Battery Safety**: Sedang Berjalan (Background pause/resume & rotation resilience).
+| Test Case | Deskripsi Pengujian | Hasil Pengujian |
+| :--- | :--- | :--- |
+| **TC-1 Runtime Permissions** | Permintaan izin BLE Scan & Connect (Android 12–16) secara bertahap sebelum aktivasi hardware Bluetooth. | **LULUS** |
+| **TC-2 BLE Discovery** | Pemindaian periklanan real-time dari puluhan perangkat fisik (TWS, smartwatch, laptop), pengurutan RSSI descending, search bar pill 44dp, dan filter slider. | **LULUS** |
+| **TC-3 Detail & Signal Gauge** | Akurasi kalkulasi jarak log-distance path loss, EMA smoothing, dan pergantian nama alias kustom perangkat. | **LULUS** |
+| **TC-4 Tactical Radar Canvas** | Animasi sweep radar 360°, penanda blip berdenyut, sparkline riwayat RSSI, dan haptic proximity ping. | **LULUS** |
+| **TC-5 Room Database Persistence** | Penyimpanan lokal SQLite, query pencarian riwayat, aksi track-again 36dp, hapus riwayat individual, dan hapus seluruh riwayat dengan dialog konsisten. | **LULUS** |
+| **TC-6 Lifecycle & Battery Safety** | Penghentian pemindaian otomatis di latar belakang (`onStop`) untuk menghemat baterai (*zero background drain*), pemulihan otomatis saat *resume*, dan anti backstack looping pada tombol Back. | **LULUS** |
 
 ---
 
@@ -254,22 +278,24 @@ Aplikasi telah diuji dan divalidasi langsung pada perangkat keras fisik **Xiaomi
 
 1. **Akurasi RSSI di Lingkungan Fisik**:
    - *Keterbatasan*: Sinyal Bluetooth 2.4 GHz dipengaruhi oleh absorpsi tubuh manusia, dinding beton, dan interferensi Wi-Fi. Oleh karena itu, estimasi jarak berbasis RSSI merupakan pendekatan (*approximation*), bukan posisi absolut berbasis Ultra-Wideband (UWB).
-   - *Solusi*: Kami menerapkan **EMA Low-Pass Filter** dan mengelompokkannya ke dalam zona rentang diskrit sesuai PRD untuk memberikan pembacaan yang stabil dan bermakna bagi pengguna.
-2. **Perilaku Izin pada Android 12+ vs Android Lawas**:
-   - *Keterbatasan*: Android 12 (API 31+) memperkenalkan izin `BLUETOOTH_SCAN` dan `BLUETOOTH_CONNECT`, sedangkan Android 11 ke bawah mewajibkan `ACCESS_FINE_LOCATION` dan GPS harus aktif.
-   - *Solusi*: Aplikasi secara otomatis mendeteksi versi OS perangkat dan meminta bundel izin yang tepat sesuai level API.
+   - *Solusi*: Kami menerapkan **EMA Low-Pass Filter** ($\alpha = 0.35$) dan mengelompokkannya ke dalam 6 zona rentang diskrit sesuai PRD untuk memberikan pembacaan yang stabil dan bermakna bagi pengguna.
+2. **Prioritas Izin Android 12+ vs Android Lawas**:
+   - *Keterbatasan*: Pada Android 12+ (API 31+), menyalakan Bluetooth atau memindai tanpa izin `BLUETOOTH_CONNECT` dan `BLUETOOTH_SCAN` akan melempar `SecurityException`.
+   - *Solusi*: Banner status mengutamakan tombol *"Berikan Izin"* terlebih dahulu, baru kemudian mengarahkan pengguna ke tombol *"Nyalakan Bluetooth"*.
 3. **OS Throttling pada Background Scanning**:
-   - *Keterbatasan*: Android OS menerapkan pembatasan agresif terhadap pemindaian BLE tanpa henti di background untuk mencegah boros baterai.
-   - *Solusi*: Mengikuti best-practice Android modern dan poin PRD 4.3, aplikasi mem-pause pemindaian saat aplikasi di-*minimize* dan menyambungnya kembali secara otomatis saat aplikasi kembali ke latar depan.
+   - *Keterbatasan*: Android OS membatasi pemindaian BLE tanpa henti di background untuk mencegah boros baterai.
+   - *Solusi*: Mengikuti best-practice Android modern dan poin PRD 4.3, aplikasi mem-pause pemindaian saat aplikasi di-*minimize* dan menyambungnya kembali secara otomatis saat aplikasi kembali ke layar depan.
 
 ---
 
-## 📦 Build Artifact (APK)
+## 📦 Build Artifact & GitHub Releases
 
-Build artifact APK debug telah dikompilasi dan siap diuji langsung tanpa perlu build ulang:
-- **Lokasi File**: `app/build/outputs/apk/debug/app-debug.apk`
+Build artifact APK debug versi terbaru telah dikompilasi dan dapat diunduh langsung:
+- **Versi Rilis**: **`v1.0.4`**
+- **Kode Versi**: `versionCode 4`, `versionName "1.0.4"`
+- **Unduh APK**: [GitHub Releases — PulseBLE Latest Debug APK](https://github.com/anantyan/PulseBLE/releases)
+- **Path Lokal**: `app/build/outputs/apk/debug/app-debug.apk`
 - **Application ID**: `com.anantyan.pulseble`
-- **Ukuran File**: $\approx 27.3\text{ MB}$
 
 ---
-*Dibuat dengan dedikasi tinggi terhadap kualitas kode, arsitektur bersih, dan pengalaman pengguna interaktif.*
+*Dibuat dengan dedikasi tinggi terhadap kualitas kode, arsitektur bersih, performa tinggi, dan pengalaman pengguna interaktif.*

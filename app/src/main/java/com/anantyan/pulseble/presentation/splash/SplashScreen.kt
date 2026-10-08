@@ -290,6 +290,17 @@ fun SplashScreen(
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center
             )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // App Version
+            Text(
+                text = "v${com.anantyan.pulseble.BuildConfig.VERSION_NAME}",
+                color = TextMuted.copy(alpha = 0.5f),
+                fontSize = 11.sp,
+                fontFamily = FontFamily.Monospace,
+                letterSpacing = 1.sp
+            )
         }
     }
 }
